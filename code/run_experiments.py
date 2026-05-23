@@ -261,7 +261,6 @@ n_sizes = [50, 100, 200, 500, 1000, 2000, 4000]
 M_repeats = 15
 
 # Large test set for regression
-U_test_r, X_test_r, Y_test_r = sample_classification(20000, 0.2)  # Shared gen method or custom GMM test set
 # For regression GMM:
 comp_t = np.random.binomial(1, 0.5, 20000)
 shift_t = np.where(comp_t == 1, 1.0, -1.0)
@@ -329,7 +328,11 @@ for i in range(K):
     mask = (U_val != i)
     Theta_opt_i = train_softmax(X_val_b[mask], Y_val[mask], K)
     Theta_opts.append(Theta_opt_i)
-    true_risks.append(P_Y_neq_i_a[i] + (1 - pi_a[i]) * (1 - q) * (evaluate_softmax(X_val_b[mask], Y_val[mask], Theta_opt_i) - P_Y_neq_i_given_U_neq_i_a[i]))
+    # Using parameters from outer loop that are stable
+    pi_i_val = np.mean(U_val == i)
+    P_Y_neq_i_val = np.mean(Y_val != i)
+    P_Y_neq_i_given_U_neq_i_val = np.mean(Y_val[mask] != i)
+    true_risks.append(P_Y_neq_i_val + (1 - pi_i_val) * (1 - q) * (evaluate_softmax(X_val_b[mask], Y_val[mask], Theta_opt_i) - P_Y_neq_i_given_U_neq_i_val))
 true_opt_class_risk = np.min(true_risks)
 
 class_excess_means = []
@@ -398,8 +401,6 @@ T_steps = 3000
 
 # A. Regression Online Regret for d=1 and d=3
 print("  Running Regression Bandit OGD...")
-# Setup environment
-# We'll use a linear model Y = b* X + noise, U = Y + preference noise
 def generate_online_reg(T, d):
     X = np.random.normal(0, 1, (T, d))
     b_star = np.ones(d) / np.sqrt(d)
@@ -413,12 +414,10 @@ def run_bandit_ogd(X, Y, U, b_star, T, d):
     eta_coef = 0.2
     b = np.zeros(d)
     
-    losses = []
     regrets = []
     cum_regret = 0.0
     
     # Pre-evaluate optimal true strategic risk
-    # Find optimal b in hindsight by grid or OLS
     b_opt = b_star  # Close enough
     
     for t in range(T):
@@ -440,10 +439,10 @@ def run_bandit_ogd(X, Y, U, b_star, T, d):
         
         F_t = (2 * u_t - b_perturbed @ x_t) * (b_perturbed @ x_t)
         if F_t > 0:
-            # Senders reveal: receiver receives x_t and predicts b_perturbed @ x_t
+            # Senders reveal
             loss_t = (y_t - b_perturbed @ x_t)**2
         else:
-            # Senders withhold: receiver receives empty and predicts 0
+            # Senders withhold
             loss_t = y_t**2
             
         # Unbiased gradient estimate
@@ -456,7 +455,6 @@ def run_bandit_ogd(X, Y, U, b_star, T, d):
             b = 2.0 * b / np.linalg.norm(b)
             
         # True risk at this step (under clean current parameter b)
-        # Strategic risk of current b
         F_t_clean = (2 * u_t - b @ x_t) * (b @ x_t)
         loss_clean = (y_t - b @ x_t)**2 if F_t_clean > 0 else y_t**2
         
@@ -501,7 +499,6 @@ def generate_online_class(T, K_classes):
     Y = np.zeros(T, dtype=int)
     for t in range(T):
         u = U[t]
-        # class centroids on circle
         angle = 2 * np.pi * u / K_classes
         centroid = np.array([np.cos(angle), np.sin(angle)])
         X[t] = np.random.normal(centroid, 0.4)
@@ -515,7 +512,6 @@ def run_exp3_ogd(X, Y, U, T, K_classes):
     # Softmax parameters
     d = 2
     # EXP3 + OGD Init
-    # K OGD instances
     Thetas = np.zeros((K_classes, K_classes, d))  # K instances of weight matrices
     w = np.ones(K_classes) # EXP3 weights
     
@@ -530,16 +526,13 @@ def run_exp3_ogd(X, Y, U, T, K_classes):
     # Find best fixed default predictor in hindsight (oracle baseline approximation)
     best_opt_loss = float('inf')
     for test_i in range(K_classes):
-        # Simple offline ERM Softmax on U != test_i
         mask = (U != test_i)
         Theta_i = train_softmax(X[mask], Y[mask], K_classes, lr=0.3, epochs=40)
-        # Evaluate total surrogate loss
         tot_l = 0.0
         for t in range(T):
             if U[t] == test_i:
                 tot_l += float(Y[t] != test_i)
             else:
-                # Softmax surrogate loss
                 score = Theta_i @ X[t]
                 score -= np.max(score)
                 prob = np.exp(score) / np.sum(np.exp(score))
@@ -550,46 +543,34 @@ def run_exp3_ogd(X, Y, U, T, K_classes):
     opt_loss_per_step = best_opt_loss / T
     
     for t in range(T):
-        # EXP3 probabilities
         p = (1 - gamma) * (w / np.sum(w)) + gamma / K_classes
-        
-        # Sample default i_t
         i_t = np.random.choice(range(K_classes), p=p)
         
-        # Game step
         u_t = U[t]
         x_t = X[t]
         y_t = Y[t]
         
-        # Strategic interaction
         if u_t == i_t:
-            # Withhold
             L_t = float(y_t != i_t)
         else:
-            # Reveal: Softmax surrogate loss
             Theta_t = Thetas[i_t]
             scores = Theta_t @ x_t
             scores -= np.max(scores)
             probs = np.exp(scores) / np.sum(np.exp(scores))
             L_t = -np.log(probs[y_t] + 1e-12)
             
-            # Compute OGD gradient update for selected default
-            # grad of -log(prob_y) w.r.t Theta_c: (prob_c - I{y = c}) * x
             grad = np.zeros_like(Theta_t)
             for c in range(K_classes):
                 indicator = float(y_t == c)
                 grad[c] = (probs[c] - indicator) * x_t
                 
-            # Importance weighted OGD update
             Thetas[i_t] -= (eta / p[i_t]) * grad
-            # Project weights to support box [-2.0, 2.0]
             Thetas[i_t] = np.clip(Thetas[i_t], -2.0, 2.0)
             
-        # Update EXP3 weights
         L_hat_t = np.zeros(K_classes)
         L_hat_t[i_t] = L_t / p[i_t]
         w = w * np.exp(- (gamma / K_classes) * L_hat_t)
-        w /= np.max(w) # stability
+        w /= np.max(w)
         
         cum_loss += L_t
         cum_opt_loss += opt_loss_per_step
@@ -607,7 +588,6 @@ regrets_k3 = run_exp3_ogd(X_k3, Y_k3, U_k3, T_steps, 3)
 plt.figure(figsize=(6, 4))
 plt.plot(regrets_k2, label='Classes $K=2$', color='navy')
 plt.plot(regrets_k3, label='Classes $K=3$', color='orange')
-# Plot O(T^(2/3)) reference curve
 T_axis = np.arange(1, T_steps + 1)
 plt.plot(T_axis, 1.2 * T_axis**(2.0/3.0), label='$\mathcal{O}(t^{2/3})$ Reference', color='gray', linestyle='--')
 plt.xlabel('Time Step $t$')

@@ -61,7 +61,7 @@ Use this document to brainstorm concepts, log decisions, draft sections, and dis
     *   *Structure Created:*
         *   `strategic_feature_withholding.tex` (Main LaTeX driver, renamed from `main.tex` to match tentative title)
         *   `references.bib` (BibTeX references)
-        *   `journal_details.txt` (Text file detailing ACM TEAC requirements, page limits, turnaround times, and completeness checklist)
+        *   `journal_details.txt` (Text file detailing ACM TIST requirements, page limits, turnaround times, and completeness checklist)
         *   `sections/` (Modular files for abstract, introduction, related work, methodology, experiments, results, conclusion, and declarations - placeholder templates subject to discussion)
         *   `figures/` (Folder for charts and diagrams, with `README.txt` guidelines)
         *   `code/` (Folder for notebooks and python scripts, with `README.txt` guidelines)
@@ -70,8 +70,8 @@ Use this document to brainstorm concepts, log decisions, draft sections, and dis
     *   *Ready for Input:* Ready for paper ideas, draft content, model names, datasets, or code files.
 
 
-*   **[2026-05-23] Pivot to ACM TEAC & Compilation Setup:**
-    *   *Journal Choice:* Agreed on a specialized, high-quality "dark horse" journal (ACM Transactions on Economics and Computation - TEAC) instead of a massive mainstream ML journal.
+*   **[2026-05-23] Pivot to ACM TIST & Compilation Setup:**
+    *   *Journal Choice:* Agreed on a specialized, high-quality "dark horse" journal (ACM Transactions on Intelligent Systems and Technology - TIST) instead of a massive mainstream ML journal.
     *   *Template Reconfigured:* Replaced the Springer template with ACM `acmart` using the `acmsmall` format in `strategic_feature_withholding.tex` and `sections/0_abstract.tex`.
     *   *Compilation Output:* Set up the compile build directory (`.build/`) via `--aux-directory` to hide all intermediate LaTeX files (keeping only `strategic_feature_withholding.tex` and `strategic_feature_withholding.pdf` visible in the root). Deleted the old `main.tex` and `main.pdf` files along with the failed `texput` logs.
     *   *Trial Compilation:* Successfully compiled `strategic_feature_withholding.pdf` without errors.
@@ -87,7 +87,7 @@ Use this document to brainstorm concepts, log decisions, draft sections, and dis
     *   *Low-Hanging Fruit / Theoretical Extensions to Consider:*
         - **Online Learning for Multiclass Classification:** Currently, you have online learning for regression but only offline learning for classification. Adding a section or a theoretical remark explaining how the online setting extends to classification (or why the discontinuous 0-1 loss makes it challenging and how to handle it with surrogate losses/smoothing) is a natural theoretical extension reviewers will look for.
         - **Generalized Sender Utilities:** The current model assumes specific quadratic utilities for regression and 0-1 utilities for classification. Discussing or deriving bounds for generalized convex utilities or asymmetric risk (e.g., if a firm strictly prefers overvaluation over undervaluation) would make the Stackelberg game formulation much richer.
-        - **Computational Complexity of the Partition Algorithm (Section 4.5):** Detailing the exact runtime complexity to compute the lower envelope/piecewise-linear partition would appeal strongly to the CS/Computation side of TEAC.
+        - **Computational Complexity of the Partition Algorithm (Section 4.5):** Detailing the exact runtime complexity to compute the lower envelope/piecewise-linear partition would appeal strongly to the AI/Systems side of TIST.
         - **Simulation-Based Validation:** A robust simulation section comparing the empirical excess risk of the joint learning algorithm to the theoretical generalization bounds (similar to the Gaussian multivariate simulations in the PDF) would be a great way to validate the theory.
 
 *   **[2026-05-23] Journal Expansion Presentation Strategies:**
@@ -95,10 +95,10 @@ Use this document to brainstorm concepts, log decisions, draft sections, and dis
         1. **Option 1 (Six Sub-problems - Comprehensive):** Regression (Decision, Offline, Online) + Classification (Decision, Offline, Online).
         2. **Option 2 (Four Sub-problems - Offline Unified):** Regression (Decision, Offline) + Classification (Decision, Offline). Excludes online.
         3. **Option 3 (Regression-Only Focus):** Regression (Decision, Offline, Online). Excludes classification.
-    *   *Antigravity's Recommendations for ACM TEAC:*
-        - **Option 1 (Six Sub-problems)** is the most theoretically complete and serves as the definitive reference. Since ACM TEAC is a top-tier journal that highly values completeness, and since we already have the online classification derivations, this option is highly competitive.
+    *   *Antigravity's Recommendations for ACM TIST:*
+        - **Option 1 (Six Sub-problems)** is the most theoretically complete and serves as the definitive reference. Since ACM TIST is a top-tier journal that highly values completeness, and since we already have the online classification derivations, this option is highly competitive.
         - **Option 3 (Regression-Only)** offers the tightest narrative, focusing deeply on one mathematical setting (continuous) from foundations to online dynamics.
-        - **Option 2 (Four Sub-problems)** is unified but misses the rich online dynamics which are highly valued in the computation/learning theory space of TEAC.
+        - **Option 2 (Four Sub-problems)** is unified but misses the rich online dynamics which are highly valued in the intelligent systems/learning theory space of TIST.
         - *Recommendation:* Option 1 is ideal if we want a highly impactful, comprehensive journal paper. Option 3 is a great fallback if we want to keep the length shorter and more focused.
 
 *   **[2026-05-23] Concrete Simulation & Computational Plan:**
