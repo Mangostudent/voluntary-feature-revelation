@@ -1,14 +1,11 @@
 \section{Regression under Strategic Withholding}
 \label{sec:regression}
 
-In this section, we specialize the general voluntary disclosure model to continuous prediction spaces where the labels are real-valued, $\mathcal{Y} = \R$, and features lie in a vector space $\mathcal{X} \subseteq \R^d$. We focus on linear predictors under quadratic loss, reflecting the classical setting of strategic linear regression. 
+In this section, we specialize the general voluntary disclosure model to continuous prediction spaces where the labels are real-valued, $\mathcal{Y} = \R$, and features lie in a vector space $\mathcal{X} \subseteq \R^d$. We focus on linear predictors under quadratic loss, reflecting the classical setting of strategic linear regression. We analyze three sequential regimes of interaction: first, the decision-theoretic game foundations under a known joint distribution, characterizing when voluntary feature disclosure provides a strategic advantage over a baseline of mandatory disclosure; second, the offline batch learning problem under an unknown distribution, analyzing how many training samples are needed to learn the optimal model; and third, the online sequential learning problem under bandit feedback, designing algorithms to update the receiver's model dynamically in real-time.
 
-We analyze three regimes of interaction:
-\begin{enumerate}
-    \item \textbf{Decision Problem (Game Foundations):} Under a known joint distribution, we analyze the conditions under which voluntary feature disclosure provides a strategic advantage to the receiver over mandatory disclosure.
-    \item \textbf{Offline Learning (Sample Complexity):} Under an unknown distribution, we evaluate how many i.i.d. samples are required for the receiver to learn the optimal strategic model.
-    \item \textbf{Online Learning (Dynamic Adaptations):} In a sequential interaction, we design algorithms to update the receiver's model in real-time under various information feedback structures.
-\end{enumerate}
+To analyze the decision-theoretic game, we contrast the voluntary disclosure model with a baseline of mandatory disclosure, where the sender is contractually obligated to always reveal their features. Under this baseline, the feature vector $X$ is revealed unless it is lost in transmission. For any receiver strategy $H_b = (b, d)$ with a linear predictor $h_b(x) = b^\top x$ and default prediction $d = 0$, the mandatory disclosure risk (vanilla risk) is $R_V(b, q) = (1 - q)\E_{(X, Y) \sim \mathcal{P}} [ (b^\top X - Y)^2 ] + q\E_{Y \sim \mathcal{P}} [ Y^2 ]$. The optimal mandatory risk is $R_V^*(q) = \min_{b \in \R^d} R_V(b, q)$. We define the strategic advantage $\Delta(E)$ of the environment as the difference in prediction risk achieved by voluntary disclosure relative to mandatory disclosure: $\Delta(E) = R_V^*(q) - R_S^*(q)$, where $R_S^*(q)$ is the optimal strategic risk. A positive strategic advantage ($\Delta(E) > 0$) implies that voluntary disclosure is strictly beneficial to the receiver.
+
+Under learning settings where the joint distribution $\mathcal{P}$ is unknown, the receiver must estimate the optimal predictor from data. In the offline batch learning setup, the receiver has access to a training set of $n$ i.i.d. samples and seeks to find an empirical predictor that minimizes the true strategic risk, bounding the generalization gap $R_S(\hat{b}, q) - R_S(b^*, q)$ as a function of the sample size $n$. In the online sequential learning setup under partial or bandit feedback, the receiver updates the parameter $b_t$ over rounds $t=1,\dots,T$ based only on the observed message $M_t \in \{x_t, \emptyset\}$ and the true label $y_t$ (without observing the sender's private preference $u_t$), aiming to minimize the expected cumulative regret $\text{Regret}(T) = \E[\sum_{t=1}^T R_S(b_t, q)] - \min_{b} \sum_{t=1}^T R_S(b, q)$.
 
 \subsection{The Regression Decision Problem}
 \label{sec:regression_decision}
@@ -131,7 +128,29 @@ The empirical optimal estimators are defined by:
     \bhatV \in \argmin_{b \in \mathcal{W}} \RhatV(b, q), \quad \bhatS \in \argmin_{b \in \mathcal{W}} \RhatS(b, q).
 \end{equation}
 
-The receiver executes the joint learning algorithm detailed in Algorithm 1 of Section~\ref{sec:formulation}. We derive uniform generalization bounds for both disclosure regimes.
+The receiver executes the offline empirical risk minimization algorithm detailed in Algorithm~\ref{alg:regression_offline}.
+
+\begin{algorithm}[htbp]
+\caption{Strategic Regression Empirical Risk Minimization (SR-ERM)}
+\label{alg:regression_offline}
+\begin{algorithmic}[1]
+\State \textbf{Input:} Training set $S = \{(u_i, x_i, y_i)\}_{i=1}^n$, channel erasure probability $q$, bounded domain parameter $C$.
+\State \textbf{Define:} Strategy space $\mathcal{W} = \{b \in \R^d : \|b\|_\infty \le C\}$.
+\State \textbf{Define:} Functions $F_b(u_i, x_i) = (2u_i - b^\top x_i)b^\top x_i$ and $G_b(x_i, y_i) = (2y_i - b^\top x_i)b^\top x_i$ for all $i \in \{1,\dots,n\}$.
+\State \textbf{Formulate Empirical Risks:}
+\begin{align*}
+    \RhatV(b, q) &= \frac{1}{n}\sum_{i=1}^n y_i^2 - (1 - q)\frac{1}{n}\sum_{i=1}^n (y_i - b^\top x_i)^2 \\
+    \RhatS(b, q) &= \frac{1}{n}\sum_{i=1}^n y_i^2 - (1 - q)\frac{1}{n}\sum_{i=1}^n G_b(x_i, y_i) \I{F_b(u_i, x_i) > 0}
+\end{align*}
+\State \textbf{Compute Empirical Strategic Advantage:}
+\begin{equation*}
+    \hat{\Delta}(S) = \min_{b \in \mathcal{W}} \RhatV(b, q) - \min_{b \in \mathcal{W}} \RhatS(b, q)
+\end{equation*}
+\State \textbf{Output:} Optimal empirical predictors $\bhatV$ and $\bhatS$, and strategic advantage estimate $\hat{\Delta}(S)$.
+\end{algorithmic}
+\end{algorithm}
+
+We derive uniform generalization bounds for both disclosure regimes.
 \begin{lemma}[Uniform Generalization of Vanilla Risk]
 \label{lem:vanilla_generalization}
 Let $\delta \in (0, 1)$. With probability at least $1 - \delta$ over the random draw of $S$:
@@ -178,21 +197,8 @@ The proof is postponed to Section~\ref{app:proof_excess_risk_guarantee}.
 \label{sec:regression_online}
 We now study the online learning problem where the receiver sequentially updates their linear predictor weight $b_t \in \mathcal{W}$ over rounds $t = 1, \dots, T$. To separate the channel friction from the learning dynamics, we assume $q = 0$ in this subsection (i.e., a noiseless channel where voluntary disclosure determines revelation directly).
 
-At each round $t$:
-\begin{enumerate}
-    \item The receiver commits to weight $b_t \in \mathcal{W}$.
-    \item Nature draws $(u_t, x_t, y_t) \sim \mathcal{P}$.
-    \item Senders disclose features with probability governed by a smooth, $\rho$-Lipschitz approximation $\psi: \R \to [0, 1]$ of the step function:
-    \begin{equation}
-        A_t \sim \mathrm{Bernoulli}(\psi(F_{b_t}(u_t, x_t))),
-    \end{equation}
-    where $F_{b_t}$ is defined as in~\eqref{eq:Fb_def}.
-    \item The receiver observes $M_t = x_t$ if $A_t = 1$ and $M_t = \emptyset$ if $A_t = 0$.
-    \item The receiver outputs prediction $\hat{y}_t = A_t b_t^\top x_t$ and suffers quadratic loss:
-    \begin{equation}
-        \ell_t(b_t) = (1 - A_t)y_t^2 + A_t(y_t - b_t^\top x_t)^2.
-    \end{equation}
-\end{enumerate}
+At each round $t$, the receiver commits to weight $b_t \in \mathcal{W}$ and nature draws the private sender characteristics $(u_t, x_t, y_t) \sim \mathcal{P}$. Senders disclose their features with a probability governed by a smooth, $\rho$-Lipschitz approximation $\psi: \R \to [0, 1]$ of the step function, so that the revelation indicator is drawn as $A_t \sim \mathrm{Bernoulli}(\psi(F_{b_t}(u_t, x_t)))$ with $F_{b_t}(u_t, x_t) = (2u_t - b_t^\top x_t)b_t^\top x_t$. The receiver then observes the incoming message $M_t = x_t$ if successfully revealed ($A_t = 1$), and $M_t = \emptyset$ if withheld ($A_t = 0$), outputting the prediction $\hat{y}_t = A_t b_t^\top x_t$ and suffering the quadratic loss $\ell_t(b_t) = (1 - A_t)y_t^2 + A_t(y_t - b_t^\top x_t)^2$.
+
 
 The true strategic population risk is:
 \begin{equation}
@@ -271,10 +277,30 @@ At each round $t$, the receiver perturbs the slope parameter:
     \quad v_t \sim \text{Uniform}(\mathbb{S}^{d-1}),
 \end{equation}
 where $\delta_t > 0$ is the exploration radius. The receiver observes $c_t = \ell_t(\hat{b}_t)$ and updates the center parameter $b_t$ using the bandit gradient estimator:
-\begin{equation}
-    \label{eq:bandit_gradient_estimator}
-    \hat{g}_t = \frac{d}{\delta_t} c_t v_t, \quad b_{t+1} = \Pi_{\mathcal{W}}\left( b_t - \eta_t \hat{g}_t \right).
-\end{equation}
+The sequential update procedure under bandit feedback is detailed in Algorithm~\ref{alg:regression_online_bandit}.
+
+\begin{algorithm}[htbp]
+\caption{Strategic Bandit Online Gradient Descent (SB-OGD)}
+\label{alg:regression_online_bandit}
+\begin{algorithmic}[1]
+\State \textbf{Initialize:} Parameter domain $\mathcal{W} = \{b \in \R^d : \|b\|_2 \le R\}$, center point $b_1 \in \mathcal{W}$, step-size parameters $\eta_t$, exploration radii $\delta_t$.
+\For{$t = 1, \dots, T$}
+    \State Sample direction vector $v_t \sim \text{Uniform}(\mathbb{S}^{d-1})$ on the unit sphere.
+    \State Formulate perturbed parameter: $\hat{b}_t = b_t + \delta_t v_t$.
+    \State Commit to policy parameterized by $\hat{b}_t$ and observe sender's revelation outcome $A_t \in \{0, 1\}$.
+    \State Suffer and observe scalar loss: 
+    \begin{equation*}
+        c_t = \begin{cases}
+            y_t^2 & \text{if } A_t = 0, \\
+            (y_t - \hat{b}_t^\top x_t)^2 & \text{if } A_t = 1.
+        \end{cases}
+    \end{equation*}
+    \State Compute unbiased bandit gradient estimate: $\hat{g}_t = \frac{d}{\delta_t} c_t v_t$.
+    \State Update center parameter: $b_{t+1} = \Pi_{\mathcal{W}}\left( b_t - \eta_t \hat{g}_t \right)$.
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+
 
 \begin{theorem}[Bandit-Feedback Regret Bound]
 \label{thm:bandit_feedback_rate}

@@ -1,14 +1,11 @@
 \section{Multiclass Classification under Strategic Withholding}
 \label{sec:classification}
 
-In this section, we specialize the general voluntary disclosure model to discrete prediction spaces where the outcome labels are finite, $\mathcal{Y} = \{1, \dots, K\}$, and the sender's preferences are also discrete, $\mathcal{U} = \{1, \dots, K\}$. We analyze this interaction under the standard 0-1 loss function, which poses unique mathematical challenges due to its discontinuity.
+In this section, we specialize the general voluntary disclosure model to discrete prediction spaces where the outcome labels are finite, $\mathcal{Y} = \{1, \dots, K\}$, and the sender's preferences are also discrete, $\mathcal{U} = \{1, \dots, K\}$. We analyze this interaction under the standard 0-1 loss function, which poses unique mathematical challenges due to its discontinuity. We analyze three sequential regimes of interaction: first, the decision-theoretic game foundations under a known joint distribution, showing how the optimal default class partitions the unit interval of channel noise; second, the offline batch learning problem under an unknown distribution, deriving the sample complexity for a joint default-predictor learner; and third, the online sequential learning problem, presenting an adaptive algorithm to update both the default class and the predictor weights in real-time under bandit feedback.
 
-As in the regression setting, we analyze the multiclass classification problem across three regimes:
-\begin{enumerate}
-    \item \textbf{Decision Problem (Game Foundations):} We analyze the equilibrium partitions of the feature space and show how the optimal default class partitions the unit interval of channel noise.
-    \item \textbf{Offline Learning (Sample Complexity):} We derive the sample complexity and excess risk bounds for a joint default-predictor learner using Natarajan's generalization framework.
-    \item \textbf{Online Learning (Dynamic Adaptations):} We present a joint online learning algorithm that combines exponential weights (EXP3) with online gradient descent (OGD) to achieve regret guarantees under bandit feedback.
-\end{enumerate}
+To analyze the decision-theoretic classification game, we contrast the strategic setting with a baseline of mandatory disclosure, where the sender is contractually obligated to always reveal their features. For any default class $i \in \{1,\dots,K\}$ and classifier $h: \mathcal{X} \to \{1,\dots,K\}$, the mandatory disclosure risk (vanilla risk) is $R_V(h, i; q) = (1 - q)\E_{(X, Y) \sim \mathcal{P}} [ \I{h(X) \ne Y} ] + q\E_{Y \sim \mathcal{P}} [ \I{i \ne Y} ]$. The optimal vanilla risk is $R_V^*(q) = \min_{h, i} R_V(h, i; q)$. We define the strategic advantage $\Delta(E)$ of the environment as the difference in prediction risk achieved by voluntary disclosure relative to mandatory disclosure: $\Delta(E) = R_V^*(q) - R_S^*(q)$, where $R_S^*(q)$ is the optimal strategic risk. A positive strategic advantage ($\Delta(E) > 0$) implies that voluntary disclosure is strictly beneficial to the receiver.
+
+Under learning settings where the joint distribution $\mathcal{P}$ is unknown, the receiver must estimate the optimal default class and classifier from data. In the offline batch learning setup, the receiver has access to a training set of $n$ i.i.d. samples and seeks to find an empirical default-classifier pair that minimizes the true strategic risk, bounding the generalization gap $R_S(\hat{i}, \hat{h}, q) - R_S(i^*, h^*, q)$ as a function of the sample size $n$. In the online sequential learning setup, the receiver updates the default class $i_t$ and the classifier weights $\Theta_t$ over rounds $t=1,\dots,T$ based only on the observed message $M_t \in \{x_t, \emptyset\}$ and the true label $y_t$ (without observing the sender's private preference $u_t$), aiming to minimize the expected cumulative regret $\text{Regret}(T) = \E[\sum_{t=1}^T R_S(i_t, \Theta_t; q)] - \min_{i, \Theta} \sum_{t=1}^T R_S(i, \Theta; q)$.
 
 \subsection{The Classification Decision Problem}
 \label{sec:classification_decision}
@@ -86,7 +83,32 @@ The empirical strategic risk under default $i$ and classifier $h$ is:
     \hat{R}^i_S(h, q) = \frac{1}{n}\sum_{j=1}^n \left[ \I{u_j = i}\I{i \ne y_j} + \I{u_j \ne i} \left( q\I{i \ne y_j} + (1 - q)\I{h(x_j) \ne y_j} \right) \right].
 \end{equation}
 
-The receiver deploys the joint selection learning algorithm detailed in Section~\ref{sec:formulation}. 
+The receiver deploys the joint selection empirical risk minimization algorithm detailed in Algorithm~\ref{alg:classification_offline}.
+
+\begin{algorithm}[htbp]
+\caption{Strategic Classification Empirical Risk Minimization (SC-ERM)}
+\label{alg:classification_offline}
+\begin{algorithmic}[1]
+\State \textbf{Input:} Training set $S = \{(u_j, x_j, y_j)\}_{j=1}^n$, class size $K$, channel erasure probability $q$, bounded domain parameter $C$.
+\State \textbf{Define:} Hypothesis classes $\mathcal{H}_i = \{h_{\Theta} : \Theta \in \R^{K \times d}, \, \|\Theta\|_\infty \le C\}$ for all $i \in \{1,\dots,K\}$, where $h_{\Theta}(x) \in \argmax_c \langle \theta_c, x \rangle$.
+\For{each default class $i \in \{1, \dots, K\}$}
+    \State Formulate the empirical strategic risk under default $i$:
+    \begin{equation*}
+        \hat{R}^i_S(h, q) = \frac{1}{n}\sum_{j=1}^n \left[ \I{u_j = i}\I{i \ne y_j} + \I{u_j \ne i} \left( q\I{i \ne y_j} + (1 - q)\I{h(x_j) \ne y_j} \right) \right].
+    \end{equation*}
+    \State Compute the empirical strategic risk minimizer:
+    \begin{equation*}
+        \hat{h}_i \in \argmin_{h \in \mathcal{H}_i} \hat{R}^i_S(h, q).
+    \end{equation*}
+\EndFor
+\State \textbf{Joint Selection:} Select the optimal default-predictor pair:
+\begin{equation*}
+    (\hat{i}, \hat{h}) \in \argmin_{i \in \{1, \dots, K\}, \, h = \hat{h}_i} \hat{R}^i_S(h, q).
+\end{equation*}
+\State \textbf{Output:} Optimal default class $\hat{i}$ and strategic classifier $\hat{h}$.
+\end{algorithmic}
+\end{algorithm}
+ 
 
 We make the following assumption regarding the availability of data:
 \begin{assumption}[Nondegenerate Revealed Mass]
@@ -152,12 +174,8 @@ The proof is postponed to Section~\ref{app:proof_classification_excess_risk}.
 
 \subsection{Online Learning (Sequential Strategic Classification)}
 \label{sec:classification_online}
-We now study online multiclass classification over rounds $t = 1, \dots, T$. In each round:
-\begin{enumerate}
-    \item The receiver commits to a default class $i_t \in \{1, \dots, K\}$ and classifier $\Theta_t \in \R^{K \times d}$.
-    \item Nature draws $(u_t, x_t, y_t) \sim \mathcal{P}$, and the sender discloses features if $u_t \ne i_t$.
-    \item The receiver observes message $M_t \in \{x_t, \emptyset\}$ and suffers 0-1 loss.
-\end{enumerate}
+We now study online multiclass classification over rounds $t = 1, \dots, T$. At each round $t$, the receiver commits to a default class $i_t \in \{1, \dots, K\}$ and a predictor parameter matrix $\Theta_t \in \R^{K \times d}$. Nature then draws the private sender characteristics $(u_t, x_t, y_t) \sim \mathcal{P}$, and the sender discloses features if their preference $u_t$ does not match the receiver's default $i_t$. Finally, the receiver observes the message $M_t = x_t$ if successfully disclosed (and not erased), and $M_t = \emptyset$ if withheld. The receiver predicts the class label using the default $i_t$ on empty messages and the linear scoring model otherwise, suffering a 0-1 prediction loss.
+
 
 The discontinuous 0-1 loss is non-convex. Furthermore, the receiver only observes features and label feedback for the committed default $i_t$ (bandit feedback). We replace the 0-1 loss with the multiclass cross-entropy surrogate:
 \begin{equation}

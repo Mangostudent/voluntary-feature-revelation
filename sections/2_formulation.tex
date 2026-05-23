@@ -1,113 +1,18 @@
-\section{Unified Problem Formulation}
+\section{Problem Formulation}
 \label{sec:formulation}
 
-We establish a unified game-theoretic framework to model the interaction between strategic data providers (the senders) and a decision-maker (the receiver) under voluntary feature disclosure. This section presents the formal structure of the Stackelberg game, the solution concepts, and the learning paradigms (both offline and online) that we analyze throughout the paper.
+We model the voluntary feature disclosure setting as a sequential Stackelberg game between two players: a receiver (the decision-maker) who acts as the leader, and a population of senders (data providers) who act as the followers. Let $\mathcal{P}$ denote a joint probability distribution over the triplet $(U, X, Y)$ representing a random sender from the population, where $X \in \mathcal{X} \subseteq \R^d$ is the sender's private, high-dimensional feature vector, $Y \in \mathcal{Y}$ is the true ground-truth label that the receiver aims to predict, and $U \in \mathcal{U}$ represents the sender's private target value or preference for the receiver's prediction. The prediction space is denoted by $\mathcal{Y}$, which we specialize to the continuous space $\mathcal{Y} = \R$ for regression in Section~\ref{sec:regression} and the discrete multi-class space $\mathcal{Y} = \{1, \dots, K\}$ for classification in Section~\ref{sec:classification}.
 
-\subsection{The Strategic Disclosure Game}
-Let $\mathcal{P}$ denote a joint probability distribution over the triplet $(U, X, Y)$, where:
-\begin{itemize}
-    \item $X \in \mathcal{X} \subseteq \R^d$ is the feature vector representing the private, high-dimensional characteristics of a sender.
-    \item $Y \in \mathcal{Y}$ is the true ground-truth label of the sender, which the receiver wishes to predict.
-    \item $U \in \mathcal{U}$ represents the sender's private preference or target value for the receiver's prediction.
-\end{itemize}
-The prediction space is denoted by $\mathcal{Y}$. In Section~\ref{sec:regression}, we specialize to continuous prediction spaces where $\mathcal{Y} = \R$, and in Section~\ref{sec:classification}, we specialize to discrete multi-class spaces where $\mathcal{Y} = \{1, \dots, K\}$.
+The game proceeds in a sequential manner. First, the receiver commits to a predictive policy $H = (h, d)$ before observing the sender's data, consisting of a predictor $h: \mathcal{X} \to \mathcal{Y}$ chosen from a hypothesis class $\mathcal{H}$ and a default prediction value $d \in \mathcal{Y}$. This committed policy $H$ is communicated to the population of senders, representing the receiver's action and the public information available to all followers. Second, a sender is drawn at random from the population, observes their private triplet $(U, X, Y) \sim \mathcal{P}$, and reviews the receiver's policy $H$. Based on this private information and the public policy, the sender strategically decides whether to reveal their feature vector $X$ (setting the disclosure decision $D = 1$) or withhold it ($D = 0$), defining a disclosure strategy $D: \mathcal{U} \times \mathcal{X} \to \{0, 1\}$. Third, if the sender chooses to disclose ($D = 1$), the transmission passes through a noisy erasure channel, which erases the feature vector with a known default-disclosure probability $q \in [0, 1]$ independent of all other variables. The actual revelation outcome is represented by a binary indicator $A = D \cdot (1 - \epsilon)$, where $\epsilon \sim \text{Bernoulli}(q)$ represents the erasure event ($\epsilon = 1$ if erased, and $\epsilon = 0$ if successfully transmitted). Finally, the receiver observes the incoming message $M \in \mathcal{X} \cup \{\emptyset\}$, where $M = X$ if $A = 1$ and $M = \dots$ if $A = 0$. The receiver then computes the prediction $\hat{Y} = H(M)$, which evaluates to $h(X)$ if $M = X$ and to the default value $d$ if $M = \emptyset$, meaning $H(M) = A h(X) + (1-A)d$.
 
-The interaction is modeled as a sequential Stackelberg game with the receiver as the leader and a population of senders as the followers:
-\begin{enumerate}
-    \item \textbf{Receiver's Strategy Commitment:} The receiver leads the game by committing to a predictive policy $H = (h, d)$ before observing the sender's data. Here, $h: \mathcal{X} \to \mathcal{Y}$ is a predictor selected from a hypothesis class $\mathcal{H}$, and $d \in \mathcal{Y}$ is a default prediction value. The policy $H$ is communicated to the population of senders.
-    \item \textbf{Sender's Disclosure Decision:} A sender is drawn at random from the population, draws a triplet $(U, X, Y) \sim \mathcal{P}$, and observes the receiver's committed policy $H$. The sender strategically decides whether to reveal their feature vector $X$ ($D = 1$) or withhold it ($D = 0$). Senders act as utility maximizers, choosing a disclosure strategy:
-    \begin{equation}
-        D: \mathcal{U} \times \mathcal{X} \to \{0, 1\}.
-    \end{equation}
-    \item \textbf{Erasure Channel Friction:} If the sender chooses to disclose their feature vector ($D = 1$), the transmission passes through a noisy erasure channel. The channel erases the feature vector with a known probability $q \in [0, 1]$, independent of all other random variables. The actual revelation outcome is represented by a binary indicator:
-    \begin{equation}
-        A = D \cdot (1 - \epsilon),
-    \end{equation}
-    where $\epsilon \sim \text{Bernoulli}(q)$ represents the erasure event ($\epsilon = 1$ when the feature is erased, and $\epsilon = 0$ when it is successfully transmitted).
-    \item \textbf{Receiver's Prediction:} The receiver observes the incoming message $M \in \mathcal{X} \cup \{\emptyset\}$, which is defined by:
-    \begin{equation}
-        M = \begin{cases}
-            X & \text{if } A = 1, \\
-            \emptyset & \text{if } A = 0.
-        \end{cases}
-    \end{equation}
-    The receiver then computes the prediction $\hat{Y} = H(M)$, where:
-    \begin{equation}
-        H(M) = A h(X) + (1 - A)d = \begin{cases}
-            h(X) & \text{if } M = X, \\
-            d & \text{if } M = \emptyset.
-        \end{cases}
-    \end{equation}
-\end{enumerate}
-
-\subsection{Players' Utilities and Solution Concepts}
-Both players evaluate outcomes using real-valued loss functions:
-\begin{itemize}
-    \item \textbf{Sender Loss:} Senders evaluate the prediction $\hat{Y}$ relative to their private preference $U$ using a loss function $\ell_S: \mathcal{Y} \times \mathcal{U} \to \R_+$. For a committed policy $H = (h, d)$, a rational sender selects their disclosure decision to minimize their expected loss over the channel erasure:
-    \begin{equation}
-        D^*(H; U, X) \in \argmin_{D \in \{0, 1\}} \E_{\epsilon} \left[ \ell_S\left( D(1-\epsilon)h(X) + (1 - D(1-\epsilon))d, \, U \right) \right].
-    \end{equation}
-    We assume that if a sender is indifferent between revealing and withholding, they break ties in favor of withholding ($D = 0$).
-    \item \textbf{Receiver Loss and Strategic Risk:} Senders' choices induce a joint distribution on the observed message $M$ and label $Y$. The receiver evaluates their prediction relative to the true label $Y$ using a loss function $\ell_R: \mathcal{Y} \times \mathcal{Y} \to \R_+$. For any receiver policy $H = (h, d)$, the strategic risk $R_S(h, d; q)$ is defined as the expected receiver loss under the sender's best-response strategy:
-    \begin{equation}
-        \label{eq:strategic_risk}
-        R_S(h, d; q) = \E_{(U, X, Y) \sim \mathcal{P}} \left[ \E_{\epsilon} \left[ \ell_R\left( A h(X) + (1-A)d, \, Y \right) \right] \right],
-    \end{equation}
-    where $A = D^*(H; U, X) \cdot (1 - \epsilon)$.
-\end{itemize}
-
-The Stackelberg equilibrium of the strategic disclosure game is defined by the receiver's optimal policy $(h^*, d^*)$ that minimizes the strategic risk:
+Both players evaluate the outcome of the prediction using real-valued loss functions. Senders evaluate the prediction $\hat{Y}$ relative to their private preference $U$ using a loss function $\ell_S: \mathcal{Y} \times \mathcal{U} \to \R_+$. A utility-maximizing sender selects their disclosure decision to minimize their expected loss over the channel erasure, choosing $D^*(H; U, X) \in \argmin_{D \in \{0, 1\}} \E_{\epsilon} \left[ \ell_S\left( D(1-\epsilon)h(X) + (1 - D(1-\epsilon))d, \, U \right) \right]$. If a sender is indifferent, they break ties in favor of withholding ($D = 0$). Conversely, the receiver evaluates the prediction relative to the true label $Y$ using a loss function $\ell_R: \mathcal{Y} \times \mathcal{Y} \to \R_+$. The senders' best responses induce a joint distribution on the observed message $M$ and label $Y$. The receiver's objective is to minimize their strategic risk $R_S(h, d; q)$, defined as the expected receiver loss under the sender's best-response strategy:
+\begin{equation}
+    \label{eq:strategic_risk}
+    R_S(h, d; q) = \E_{(U, X, Y) \sim \mathcal{P}} \left[ \E_{\epsilon} \left[ \ell_R\left( A h(X) + (1-A)d, \, Y \right) \right] \right],
+\end{equation}
+where the revelation outcome is determined by $A = D^*(H; U, X) \cdot (1 - \epsilon)$. The Stackelberg equilibrium of this game is defined by the receiver's optimal policy $(h^*, d^*)$ that minimizes this strategic risk:
 \begin{equation}
     \label{eq:stackelberg_opt}
     (h^*, d^*) \in \argmin_{h \in \mathcal{H}, \, d \in \mathcal{Y}} R_S(h, d; q),
 \end{equation}
-and the optimal strategic risk is denoted by $R_S^*(q) = R_S(h^*, d^*; q)$. The environment of the game is fully characterized by the tuple $E = (\mathcal{P}, \mathcal{H}, \mathcal{Y}, q, \ell_S, \ell_R)$.
-
-\subsection{Decision-Theoretic Setting: Strategic Advantage}
-To understand the impact of voluntary disclosure, we compare it to a baseline regime of \emph{mandatory disclosure}, where the sender is legally or contractually obligated to always reveal their features (i.e., $D \equiv 1$).
-\begin{definition}[Mandatory/Vanilla Risk]
-Under mandatory disclosure, the feature vector $X$ is revealed unless it is lost in transmission due to the channel erasure. For any receiver strategy $H = (h, d)$, the mandatory disclosure risk (or vanilla risk) is:
-\begin{equation}
-    \label{eq:vanilla_risk}
-    R_V(h, d; q) = (1 - q)\E_{(X, Y) \sim \mathcal{P}} \left[ \ell_R(h(X), Y) \right] + q\E_{Y \sim \mathcal{P}} \left[ \ell_R(d, Y) \right].
-\end{equation}
-The optimal mandatory risk is $R_V^*(q) = \min_{h \in \mathcal{H}, d \in \mathcal{Y}} R_V(h, d; q)$, achieved by $(h_V^*, d_V^*)$.
-\end{definition}
-
-To measure the net benefit of allowing voluntary disclosure, we introduce the concept of strategic advantage:
-\begin{definition}[Strategic Advantage]
-For a given environment $E$, the strategic advantage $\Delta(E)$ is the reduction in prediction risk achieved by voluntary disclosure relative to mandatory disclosure:
-\begin{equation}
-    \label{eq:strategic_advantage}
-    \Delta(E) = R_V^*(q) - R_S^*(q).
-\end{equation}
-\end{definition}
-Voluntary disclosure is strictly beneficial to the receiver if and only if $\Delta(E) > 0$. In Section~\ref{sec:regression} and Section~\ref{sec:classification}, we analyze the structural and mathematical properties of the strategic advantage for continuous and discrete settings, respectively.
-
-\subsection{Learning Paradigms under Strategic Withholding}
-In practical settings, the joint distribution $\mathcal{P}$ is unknown to the receiver, meaning the optimal policy $(h^*, d^*)$ cannot be computed directly. The receiver must learn the optimal model from data. We consider two standard learning setups: offline batch learning and online sequential learning.
-
-\subsubsection{Offline Batch Learning}
-In the offline learning paradigm, the receiver has access to a finite training set $S = \{(u_j, x_j, y_j)\}_{j=1}^n$ containing $n$ i.i.d. samples drawn from the underlying distribution $\mathcal{P}$. The receiver's goal is to construct an empirical learning algorithm $\mathcal{A}: S \to \mathcal{H} \times \mathcal{Y}$ that outputs a policy $(\hat{h}, \hat{d})$ minimizing the true strategic risk. The performance of the learned policy is measured by the generalization gap (or excess strategic risk):
-\begin{equation}
-    \label{eq:generalization_gap}
-    \mathrm{Gap}(n) = R_S(\hat{h}, \hat{d}; q) - R_S(h^*, d^*; q).
-\end{equation}
-We derive sample complexity bounds on the generalization gap $\mathrm{Gap}(n)$ as a function of the sample size $n$ and the complexity of the hypothesis class $\mathcal{H}$ for both regression and classification.
-
-\subsubsection{Online Learning under Partial Feedback}
-In the online learning paradigm, the receiver interacts with a sequence of strategic senders arriving at rounds $t = 1, \dots, T$. The protocol for each round $t$ is as follows:
-\begin{enumerate}
-    \item Senders' preferences and features $(u_t, x_t, y_t)$ are drawn i.i.d. from $\mathcal{P}$ (but not observed by the receiver).
-    \item The receiver commits to a policy $H_t = (h_t, d_t)$.
-    \item The sender observes $H_t$ and chooses $D_t \in \{0, 1\}$.
-    \item The transmission goes through the channel, producing the revelation indicator $A_t = D_t(1-\epsilon_t)$, where $\epsilon_t \sim \text{Bernoulli}(q)$.
-    \item The receiver observes the message $M_t \in \{x_t, \emptyset\}$ and outputs the prediction $\hat{y}_t = H_t(M_t)$.
-    \item The receiver observes the true label $y_t$ and suffers prediction loss $\ell_{R, t} = \ell_R(\hat{y}_t, y_t)$.
-\end{enumerate}
-Under the realistic \emph{bandit/partial feedback} model, the receiver only observes the feature vector $x_t$ if the transmission is successful ($A_t = 1$), and the sender's private preference $u_t$ is \emph{never} observed. The receiver's goal is to select a sequence of policies $H_t$ to minimize the expected cumulative regret over $T$ rounds:
-\begin{equation}
-    \label{eq:online_regret}
-    \mathrm{Regret}(T) = \E\left[ \sum_{t=1}^T R_S(h_t, d_t; q) \right] - \min_{h \in \mathcal{H}, \, d \in \mathcal{Y}} \sum_{t=1}^T R_S(h, d; q),
-\end{equation}
-where the expectation is taken over the sequence of draws and the channel erasures. We design online learning algorithms and establish regret bounds of $\cO(\sqrt{T})$ for regression and $\tilde{\cO}(T^{2/3})$ for classification.
+with the optimal strategic risk denoted by $R_S^*(q) = R_S(h^*, d^*; q)$. The environment of the game is fully characterized by the tuple $E = (\mathcal{P}, \mathcal{H}, \mathcal{Y}, q, \ell_S, \ell_R)$.
