@@ -1,0 +1,60 @@
+\section{Proposed Methodology}\label{sec:methodology}
+This section describes your technical approach. Start with a brief overview of the system architecture, followed by mathematical formulations and algorithm details.
+
+\subsection{Problem Formulation and Notation}
+Let $\mathcal{D} = \{(x_i, y_i)\}_{i=1}^N$ be the dataset, where $x_i \in \mathbb{R}^d$ represents the input features, and $y_i \in \mathcal{Y}$ represents the corresponding target label. Our objective is to learn a mapping function $f_\theta: \mathbb{R}^d \rightarrow \mathcal{Y}$ parameterized by $\theta$ such that:
+\begin{equation}
+\theta^* = \argmin_\theta \mathcal{L}(\mathcal{D}; \theta) + \lambda \mathcal{R}(\theta)
+\label{eq:objective_function}
+\end{equation}
+where $\mathcal{L}(\cdot)$ is the loss function, $\mathcal{R}(\cdot)$ is the regularization term, and $\lambda > 0$ is a trade-off hyperparameter.
+
+\subsection{System Architecture}
+Provide a high-level overview of your model architecture. Refer to an architecture figure (a placeholder for your architectural diagram is represented in Figure~\ref{fig:architecture}).
+
+\begin{figure}[h]
+\centering
+\fbox{\rule{0pt}{2in} \rule{0.9\linewidth}{0pt}} % Placeholder for figure box
+\caption{System architecture diagram of the proposed model. The inputs are first processed by the Feature Extraction layer, then passed to the Fusion Module, and finally decoded into target predictions.}\label{fig:architecture}
+\end{figure}
+
+\subsection{Detailed Components}
+Detail each component of your architecture in separate sub-subsections.
+
+\subsubsection{Feature Extraction Module}
+Describe how features are processed. Write down the corresponding equations.
+\begin{equation}
+z_i = \text{LayerNorm}(\text{ReLU}(W_e x_i + b_e))
+\label{eq:feature_extraction}
+\end{equation}
+where $W_e$ and $b_e$ are the weight matrix and bias vector, respectively.
+
+\subsubsection{Novel Fusion Mechanism / Custom Core Block}
+Detail your primary contribution. Explain the mathematical intuition behind it.
+\begin{equation}
+\alpha_{i,j} = \frac{\exp(\text{Score}(z_i, z_j))}{\sum_{k} \exp(\text{Score}(z_i, z_k))}
+\label{eq:attention_scores}
+\end{equation}
+
+\subsection{Training and Optimization Algorithm}
+Provide the step-by-step training process in pseudocode using the `algorithm` environment.
+
+\begin{algorithm}
+\caption{Training Procedure of Proposed Method}\label{alg:training_method}
+\begin{algorithmic}[1]
+\Require Dataset $\mathcal{D}$, learning rate $\eta$, epochs $E$, batch size $B$, regularization factor $\lambda$
+\Ensure Optimized model parameters $\theta^*$
+\State Initialize model parameters $\theta$ randomly
+\For{epoch $t = 1$ \textbf{to} $E$}
+    \State Shuffle dataset $\mathcal{D}$ and partition into mini-batches $\mathcal{B}$
+    \For{each mini-batch $B_j \in \mathcal{B}$}
+        \State Compute predictions: $\hat{y}_i = f_\theta(x_i)$ for $x_i \in B_j$
+        \State Calculate batch loss: $\mathcal{L}_{batch} = \frac{1}{|B_j|}\sum_{i \in B_j} \ell(\hat{y}_i, y_i)$
+        \State Calculate total loss with regularization: $\mathcal{L}_{total} = \mathcal{L}_{batch} + \lambda \mathcal{R}(\theta)$
+        \State Compute gradients: $g \leftarrow \nabla_\theta \mathcal{L}_{total}$
+        \State Update parameters: $\theta \leftarrow \theta - \eta \cdot \text{OptimizerUpdate}(g)$
+    \EndFor
+\EndFor
+\State \Return $\theta^* \leftarrow \theta$
+\end{algorithmic}
+\end{algorithm}

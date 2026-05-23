@@ -1,0 +1,51 @@
+\section{Results and Discussion}\label{sec:results}
+Present the empirical results and analyze them critically.
+
+\subsection{Quantitative Performance Comparison}
+Compare your method with the baseline models on all datasets. Use tables to report findings clearly (e.g., Table~\ref{tab:main_results}).
+
+\begin{table}[h]
+\caption{Main quantitative comparison results on the test sets. Best results are in \textbf{bold}, second best are \underline{underlined}.}\label{tab:main_results}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+ & \multicolumn{2}{c}{Dataset 1} & \multicolumn{2}{c}{Dataset 2} & \multicolumn{2}{c}{Dataset 3} \\
+Method & Accuracy (\%) & F1-Score & Accuracy (\%) & F1-Score & Accuracy (\%) & F1-Score \\
+\midrule
+Baseline 1 & 82.5 & 0.812 & 84.1 & 0.835 & 71.3 & 0.701 \\
+Baseline 2 & 88.9 & 0.881 & 89.2 & 0.887 & 78.4 & 0.779 \\
+Baseline 3 & \underline{91.2} & \underline{0.909} & \underline{91.5} & \underline{0.911} & \underline{82.1} & \underline{0.818} \\
+\textbf{Ours (Method)} & \textbf{94.6} & \textbf{0.942} & \textbf{95.1} & \textbf{0.949} & \textbf{86.7} & \textbf{0.863} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Discuss the results: Why does your model perform better? Which components contribute to this improvement?
+
+\subsection{Ablation Study}
+To show the importance of each part of your design, present an ablation study where components are turned off or replaced by simpler options (e.g., Table~\ref{tab:ablation}).
+
+\begin{table}[h]
+\caption{Ablation study on Dataset 1 showing the contribution of each module.}\label{tab:ablation}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Configuration & Accuracy (\%) & F1-Score & Diff (\%) \\
+\midrule
+Full Model & \textbf{94.6} & \textbf{0.942} & -- \\
+w/o Feature Extraction Module & 91.8 & 0.914 & -2.8 \\
+w/o Fusion Mechanism & 89.5 & 0.890 & -5.1 \\
+w/o Regularization ($\lambda = 0$) & 92.1 & 0.919 & -2.5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Parameter Sensitivity Analysis}
+Analyze how critical hyperparameters (e.g., learning rate, regularization coefficient $\lambda$, hidden dimension size) affect the performance. Discuss these findings and reference a line chart or bar plot (represented as a placeholder in Figure~\ref{fig:sensitivity}).
+
+\begin{figure}[h]
+\centering
+\fbox{\rule{0pt}{1.8in} \rule{0.8\linewidth}{0pt}} % Placeholder for figure box
+\caption{Parameter sensitivity analysis showing F1-Score vs. different values of the regularization hyperparameter $\lambda$ across the three datasets.}\label{fig:sensitivity}
+\end{figure}
+
+\subsection{Qualitative Analysis and Visualizations}
+Provide qualitative analyses, such as t-SNE clustering of learned representations, case studies showing predictions on difficult inputs, heatmaps of attention weights, or error analysis highlighting where and why the model fails.

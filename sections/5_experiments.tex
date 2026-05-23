@@ -1,0 +1,106 @@
+\section{Simulation Results and Empirical Validation}
+\label{sec:experiments}
+
+In this section, we present the empirical results of our simulations to validate the theoretical findings established in Sections~\ref{sec:regression} and~\ref{sec:classification}. We begin by outlining the experimental setup, detailing the generative models for continuous and discrete prediction spaces, and then present the outcome of our parameter sweeps, offline learning rates, and online regret convergence.
+
+\subsection{Experimental Setup}
+To simulate realistic settings with asymmetric information and non-linear dependencies, we implement two distinct generative models:
+
+\subsubsection{Continuous Space (Regression Model)}
+We generate the continuous variables $(X, Y, U) \in \mathbb{R}^3$ using a two-component Gaussian Mixture Model (GMM). This ensures that the data distribution is non-Gaussian, highlighting the generality of our framework:
+\begin{enumerate}
+    \item A latent component variable $z \in \{1, 2\}$ is drawn with equal probability.
+    \item Conditioned on $z$, the variables are drawn from a multivariate Gaussian with mean vector $\mu_z$ and covariance matrix $\Sigma_z$. The means are shifted to create asymmetric regions: $\mu_1 = [1, 1, 1]^\top$ and $\mu_2 = [-1, -1, -1]^\top$.
+    \item The covariance matrix is parameterized by the correlation coefficients $\rho_{XY}$ (correlation between features and labels) and $\rho_{XU}$ (correlation between features and sender preferences). The alignment between $Y$ and $U$ (beyond the features $X$) is controlled by a parameter $\gamma \in [0, 1]$, set to $\gamma = 0.8$ throughout. The standard Gaussians are combined as:
+    \begin{align}
+        X &= \mu_{z, X} + Z_X, \\
+        Y &= \mu_{z, Y} + \rho_{XY} Z_X + \sqrt{1 - \rho_{XY}^2} Z_Y, \\
+        U &= \mu_{z, U} + \rho_{XU} Z_X + \gamma \sqrt{1 - \rho_{XU}^2} Z_Y + \sqrt{1 - \gamma^2} \sqrt{1 - \rho_{XU}^2} Z_U,
+    \end{align}
+    where $Z_X, Z_Y, Z_U \sim \mathcal{N}(0, 1)$ are independent standard normal variables.
+\end{enumerate}
+
+\subsubsection{Discrete Space (Classification Model)}
+For multiclass classification with $K$ classes, the preference $U \in \{1, \dots, K\}$ is drawn from a prior categorical distribution $\pi = [0.35, 0.4, 0.25]$ (for $K=3$). Conditioned on the preference $U = i$:
+\begin{enumerate}
+    \item The features $X \in \mathbb{R}^2$ are drawn from a class-conditional Gaussian:
+    \begin{equation}
+        X \mid U = i \sim \mathcal{N}(\mu_i, \sigma^2 I),
+    \end{equation}
+    where $\mu_1 = [-1, -1]^\top$, $\mu_2 = [0, 1.5]^\top$, and $\mu_3 = [1, -1]^\top$ represent centroids distributed on a circle, and the class variance is $\sigma^2 = 0.5$.
+    \item The true label $Y \in \{1, \dots, K\}$ is drawn such that the sender's preference is aligned with $Y$ with probability $1 - \alpha$, and is uniformly distributed over the remaining $K-1$ classes with probability $\alpha$ (alignment noise):
+    \begin{equation}
+        \Pr(Y = j \mid U = i) = (1 - \alpha) \I{j = i} + \frac{\alpha}{K - 1} \I{j \ne i}.
+    \end{equation}
+\end{enumerate}
+
+---
+
+\subsection{Decision Sweeps}
+\label{sec:exp_decision}
+
+We first validate our game-theoretic foundations by sweeping the environment parameters and plotting the resulting strategic advantage $\Delta^* = R_V^* - R_S^*$ achieved by the receiver under voluntary disclosure.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{regression_decision_sweep.png}
+    \caption{Regression Strategic Advantage $\Delta^*(E)$ as a function of feature-label correlation $\rho_{XY}$ and feature-preference correlation $\rho_{XU}$ (under channel noise $q = 0.3$). The dashed black contour delineates the boundary of the sufficient condition (Theorem 3.4).}
+    \label{fig:regression_decision_sweep}
+\end{figure}
+
+\subsubsection{Regression Decision Sweep}
+Figure~\ref{fig:regression_decision_sweep} displays the strategic advantage heatmap for the regression game under a fixed channel noise $q = 0.3$. We sweep $\rho_{XY}$ and $\rho_{XU}$ on a $25 \times 25$ grid. 
+* **Observations:** A positive strategic advantage (indicated by red regions) is attained when the feature-label correlation $\rho_{XY}$ and the feature-preference correlation $\rho_{XU}$ have the same sign. In this regime, the sender's disclosure incentive aligns with the receiver's predictive benefit: the sender voluntarily reveals features when they are large in the direction of the label, which coincides with the instances where features are highly predictive. Conversely, when the correlations have opposite signs, voluntary disclosure degrades accuracy compared to OLS Omit baselines (blue regions).
+* **Sufficient Condition Validation:** The dashed black contour shows the boundary where the sufficient condition (Theorem~\ref{thm:sufficient_condition}) holds. As predicted, this region is a subset of the true positive strategic advantage region, confirming that the condition is sufficient but conservative due to the Cauchy-Schwarz approximation of the preference bias.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.48\textwidth]{classification_piecewise_linear.png}
+    \hfill
+    \includegraphics[width=0.48\textwidth]{classification_decision_sweep.png}
+    \caption{Classification decision results. Left: Piecewise-linear envelope of strategic risks for different defaults $i$, validating Theorem~\ref{thm:piecewise_linear_noise}; Right: Heatmap of strategic advantage $\Delta^*(q)$ over noise $q$ and alignment noise $\alpha$.}
+    \label{fig:classification_decision_results}
+\end{figure}
+
+\subsubsection{Classification Decision Sweep}
+Figure~\ref{fig:classification_decision_results} (left) plots the strategic risks $R^i_S(q)$ for each of the $K=3$ default classes alongside the optimal strategic risk envelope $R^*_S(q) = \min_i R^i_S(q)$, for a fixed alignment noise $\alpha = 0.15$.
+* **Piecewise-Linear Structure:** In accordance with Lemma~\ref{lem:class_strategic_risk}, each individual risk line is affine in $q$. The lower envelope $R^*_S(q)$ is concave and piecewise-linear, partitioned into three linear segments separated by transition points near $q \approx 0.35$ and $q \approx 0.70$. This confirms Theorem~\ref{thm:piecewise_linear_noise}: the optimal default class changes from class 2 to class 1, and finally to class 3 as the channel noise increases, partitioning the noise interval.
+* **Advantage Heatmap:** Figure~\ref{fig:classification_decision_results} (right) sweeps the channel noise $q$ and alignment noise $\alpha$. The strategic advantage is largest when the alignment noise $\alpha$ is low (indicating high alignment between preference $U$ and label $Y$) and the channel noise $q$ is small (ensuring features are successfully transmitted). As the alignment noise $\alpha$ increases beyond $0.5$, the preference becomes decoupled from the target class, and the strategic advantage vanishes.
+
+---
+
+\subsection{Offline Generalization Gaps}
+\label{sec:exp_offline}
+
+Next, we evaluate the offline learning curves by plotting the excess strategic risk $R_S(\hat{b}_n) - R_S(b^*)$ (for regression) and $R_S(\hat{\Theta}_n) - R_S(\Theta^*)$ (for classification) against the training sample size $n$, averaged over $15$ independent runs.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.48\textwidth]{regression_offline_learning.png}
+    \hfill
+    \includegraphics[width=0.48\textwidth]{classification_offline_learning.png}
+    \caption{Offline learning curves showing the decay of the excess strategic risk on a log-log scale. Left: Regression excess risk converging at a rate matching the $\mathcal{O}(d^3/\sqrt{n})$ bound; Right: Classification excess risk converging at a rate matching the $\mathcal{O}(\sqrt{Kd/n})$ Natarajan dimension bound.}
+    \label{fig:offline_learning_curves}
+\end{figure}
+
+* **Regression Convergence:** Figure~\ref{fig:offline_learning_curves} (left) shows the convergence rate of the strategic empirical risk minimizer (ERM) on a log-log scale. The excess risk decays rapidly, demonstrating that a sample size of $n \ge 1000$ is sufficient to achieve an excess strategic prediction risk of less than $0.05$. The decay matches the theoretical $\mathcal{O}(n^{-0.5})$ generalization rate proved in Theorem~\ref{thm:excess_risk_guarantee}.
+* **Classification Convergence:** Figure~\ref{fig:offline_learning_curves} (right) validates the sample complexity of the joint selection algorithm in classification. The excess risk converges to zero as $n$ approaches $4000$, validating Lemma~\ref{lem:simultaneous_convergence} and Theorem~\ref{thm:classification_excess_risk}. The convergence rate matches the sublinear rate $\mathcal{O}(n^{-0.5})$ governed by the Natarajan dimension of multiclass linear boundaries.
+
+---
+
+\subsection{Online Regret Convergence}
+\label{sec:exp_online}
+
+Finally, we analyze the online sequential learning setting under bandit feedback, running the algorithms over $T = 3000$ steps.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.48\textwidth]{regression_online_regret.png}
+    \hfill
+    \includegraphics[width=0.48\textwidth]{classification_online_regret.png}
+    \caption{Online expected cumulative regret curves under bandit feedback. Left: Regression regret under bandit OGD using one-point gradient estimates for $d=1$ and $d=3$, showing $\mathcal{O}(\sqrt{t})$ sublinear growth; Right: Classification regret under EXP3+OGD for $K=2$ and $K=3$, confirming the sublinear $\mathcal{O}(t^{2/3})$ regret bound.}
+    \label{fig:online_regret_curves}
+\end{figure}
+
+* **Regression Bandit OGD:** Figure~\ref{fig:online_regret_curves} (left) plots the cumulative regret of the one-point bandit gradient estimator. For both dimensions $d=1$ and $d=3$, the regret grows sublinearly, bounded by the $\mathcal{O}(\sqrt{t})$ theoretical curve. Comparing the two curves, we observe that the higher dimension $d=3$ incurs larger cumulative regret. This is due to the $d/\delta_t$ scaling in the one-point spherical gradient estimate, which increases variance in higher dimensions, matching Theorem~\ref{thm:bandit_feedback_rate}.
+* **Classification EXP3 + OGD:** Figure~\ref{fig:online_regret_curves} (right) plots the expected cumulative regret of our decoupled EXP3+OGD algorithm (Algorithm 1) for $K=2$ and $K=3$ classes. The regret grows sublinearly, conforming to the $\mathcal{O}(t^{2/3})$ reference curve proved in Theorem~\ref{thm:classification_regret_bound}. The curve for $K=3$ classes exhibits a slower convergence rate and higher regret than $K=2$ classes, as the meta-algorithm must explore a larger discrete choice space (EXP3 arms) to identify the optimal default class, validating the dimension-independent scaling with respect to $d$ but dependency on the number of classes $K$.

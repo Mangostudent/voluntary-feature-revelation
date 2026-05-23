@@ -1,0 +1,92 @@
+================================================================================
+ACM Transactions on Economics and Computation (TEAC) - Journal Submission Info
+================================================================================
+
+1. JOURNAL OVERVIEW & REPUTATION
+---------------------------------
+* Journal Name: ACM Transactions on Economics and Computation (TEAC)
+* Scope: Interdisciplinary venue for computer science (machine learning, multi-
+         agent systems) and economics (game theory, mechanism design, auctions).
+* CORE Rank: B / A boundary (a highly prestigious, niche journal; the premier 
+             journal venue for the ACM EC community).
+* Indexing: Indexed in Scopus, SCIE, Google Scholar, DBLP. SCImago Q2 rating.
+* Significance: Focuses on algorithmic game theory, learning in games, and 
+                strategic ML. Highly relevant to "Strategic Feature Withholding".
+
+2. SUBMISSION REQUIREMENTS & FORMATTING
+---------------------------------------
+* Template: Official ACM Primary Article Template (acmart.cls).
+* Format Option: \documentclass[acmsmall]{acmart} (Single-column layout).
+* Bibliography Style: ACM-Reference-Format (linked to a references.bib file).
+* Page Limits: No strict page limit for journal submissions. Unlike conferences,
+              TEAC encourages thorough proofs, detailed appendices, and 
+              exhaustive experiments. Average length is 20-35 pages.
+* Abstract Length: 150 to 250 words, written in a single paragraph.
+* Special Sections: Mandatory ACM Computing Classification System (CCS) concepts
+                    for camera-ready. Author acknowledgments must use the "acks"
+                    environment.
+
+3. TIMELINES & TURNAROUND
+--------------------------
+* Review Process: Traditional peer-review by 3 independent expert reviewers.
+* Average Time to First Decision: 3 to 6 months (90-180 days).
+* Fast Track Option: "Forward-to-Journal" program available for papers that
+                     were submitted to/presented at the ACM EC conference,
+                     utilizing previous reviews to speed up the decision.
+
+4. MANUSCRIPT COMPLETENESS CHECKLIST
+------------------------------------
+Use this checklist to track the paper's progress:
+
+[x] LaTeX Template Configured (ACM acmart template in place)
+[x] Local Build Setup Confirmed (compiles cleanly with all temp files hidden)
+[ ] Abstract (sections/0_abstract.tex)
+    [ ] Background and context
+    [ ] Specific problem statement
+    [ ] Proposed Stackelberg model and methodology
+    [ ] Main theoretical/empirical findings
+[ ] Introduction (sections/1_introduction.tex)
+    [ ] Problem formulation motivation (strategic agents, noisy channels)
+    [ ] Research gaps (with respect to previous strategic learning literature)
+    [ ] Bullets of major contributions
+    [ ] Structure overview of the rest of the paper
+[ ] Related Work (sections/2_related_work.tex)
+    [ ] Strategic classification & regression literature
+    [ ] Game-theoretic information disclosure models
+    [ ] Related work comparison table
+[ ] Proposed Methodology (sections/3_methodology.tex)
+    [ ] Stackelberg game mathematical formulation
+    [ ] Sender best response derivation
+    [ ] Necessary and sufficient conditions for positive strategic advantage
+    [ ] Mathematical proofs (or appendices references)
+[ ] Experimental Setup (sections/4_experiments.tex)
+    [ ] Simulation environments and synthetic dataset details
+    [ ] Baseline models definition
+    [ ] Parameters and hyperparameters listings (for reproducibility)
+[ ] Results and Discussion (sections/5_results.tex)
+    [ ] Quantitative comparisons tables
+    [ ] Ablation studies
+    [ ] Parameter sensitivity (e.g., impact of noise/erasure rate q)
+[ ] Conclusion & Future Directions (sections/6_conclusion.tex)
+    [ ] Brief summary of outcomes
+    [ ] Concrete future work directions (online/partial feedback extensions)
+[ ] Declarations & Acknowledgments (main.tex)
+    [ ] Funding and conflicts of interest details
+[ ] Bibliography (references.bib)
+    [ ] Clean BibTeX formatting matching the ACM Reference Format
+
+5. ACM GENERATIVE AI POLICY & AUTHOR GUIDELINES
+-----------------------------------------------
+* AI Cannot Be an Author: Generative AI tools (like ChatGPT, Claude, etc.) cannot 
+  be listed as co-authors on any ACM publication. Authorship is strictly reserved 
+  for human contributors.
+* Full Disclosure: If Generative AI tools are used to generate content (text, 
+  images, mathematical derivations, or code), this usage must be fully disclosed 
+  in the manuscript. Typically, this disclosure is placed in the Acknowledgments 
+  section (the "acks" environment in acmart).
+* Exception for Writing Helpers: Standard word processors, spelling checkers, 
+  and grammar check tools (minor stylistic polishing) do not require disclosure.
+* Author Responsibility: The human authors remain 100% accountable for the 
+  accuracy, originality, and integrity of all content (including ensuring that 
+  AI-generated citations, math proofs, or code are correct and free from plagiarism).
+================================================================================

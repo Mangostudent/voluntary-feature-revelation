@@ -1,0 +1,149 @@
+%% 
+%% ACM LaTeX Template for:
+%% ACM Transactions on Economics and Computation (TEAC)
+%%
+\documentclass[acmsmall]{acmart}
+
+%% Packages
+\usepackage{booktabs}% Elegant tables
+\usepackage{algorithm}% Algorithm wrapper
+\usepackage{algorithmicx}% Algorithmic tools
+\usepackage{algpseudocode}% Pseudocode layouts
+\usepackage{listings}% Code listing formatting
+
+%% Configure figures path
+\graphicspath{{figures/}}
+
+%% Journal & copyright settings (placeholders for camera-ready, standard for draft/review)
+\setcopyright{acmcopyright}
+\copyrightyear{2026}
+\acmYear{2026}
+\acmDOI{}
+\acmJournal{TEAC}
+\acmVolume{1}
+\acmNumber{1}
+\acmArticle{1}
+\acmMonth{1}
+
+%% Mathematical notation shortcuts
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+%% Theorem-like environments
+\newtheorem{remark}{Remark}
+\newtheorem{assumption}{Assumption}
+
+%% Custom macros for Strategic Feature Withholding
+\newcommand{\bV}{b_{\mathrm{V}}} % OLS estimator
+\newcommand{\bS}{b_{\mathrm{S}}} % Strategic optimal estimator
+\newcommand{\RV}{R_{\mathrm{V}}} % Vanilla/Mandatory risk
+\newcommand{\RS}{R_{\mathrm{S}}} % Strategic risk
+\newcommand{\bhatV}{\hat{b}_{\mathrm{V}}} % Empirical vanilla
+\newcommand{\bhatS}{\hat{b}_{\mathrm{S}}} % Empirical strategic
+\newcommand{\RhatV}{\hat{R}_{\mathrm{V}}} % Empirical vanilla risk
+\newcommand{\RhatS}{\hat{R}_{\mathrm{S}}} % Empirical strategic risk
+\newcommand{\ip}[2]{\langle #1, #2 \rangle} % Inner product
+\newcommand{\phiSurr}{\phi_{\mathrm{surr}}} % Surrogate loss
+\newcommand{\PiW}{\Pi_{\mathcal{W}}} % Projection operator
+\newcommand{\I}[1]{\mathbf{1}\{#1\}} % Indicator function
+\newcommand{\Ept}[1]{\mathbb{E}_{#1}} % Expectation with subscript
+\newcommand{\cO}{\mathcal{O}} % Big-O notation
+\newcommand{\cK}{\mathcal{K}} % Class size set
+\newcommand{\ThetaS}{\Theta_{\mathrm{S}}} % Strategic classification weights
+
+\begin{document}
+
+\title[Voluntary Feature Revelation]{Voluntary Feature Revelation in Predictive Tasks: A Unified Framework for Regression and Multiclass Classification}
+
+%% Authors and Affiliations
+\author{Manish Kumar Singh}
+\email{corresponding.author@email.com}
+\affiliation{%
+  \institution{Indian Institute of Technology Bombay}
+  \department{Centre for Systems and Control}
+  \city{Mumbai}
+  \state{Maharashtra}
+  \country{India}
+}
+
+\author{Ankur A. Kulkarni}
+\email{second.author@email.com}
+\affiliation{%
+  \institution{Indian Institute of Technology Bombay}
+  \department{Centre for Systems and Control}
+  \city{Mumbai}
+  \state{Maharashtra}
+  \country{India}
+}
+
+\author{Kriti Mahajan}
+\email{third.author@email.com}
+\affiliation{%
+  \institution{Amazon India}
+  \city{Bangalore}
+  \state{Karnataka}
+  \country{India}
+}
+
+\begin{abstract}
+We investigate the framework of machine learning in the presence of strategic information disclosure, specifically focusing on the problem of voluntary feature revelation. This scenario is modeled as a Stackelberg game: a data provider (the sender) strategically determines whether to reveal or withhold optional features to optimize their individual payoff, while a decision-maker (the receiver) commits to a predictive model designed to minimize strategic prediction error. We analyze this interaction across two fundamental prediction spaces: continuous labels (regression) and discrete labels (multiclass classification). For both settings, we examine three sequential regimes of interaction: (i) the decision-theoretic game foundations, establishing necessary and sufficient conditions under which voluntary disclosure benefits the receiver; (ii) the offline batch learning problem, deriving uniform generalization bounds and sample complexity rates under finite training data; and (iii) the online learning problem, designing algorithms to learn under partial or bandit feedback in real-time. Since optimizing the discontinuous, step-like strategic risk is computationally intractable (NP-hard), we leverage smooth surrogate loss formulations to construct gradient-based optimization routines with rigorous regret guarantees—proving $O(\sqrt{T})$ regret for regression and $O(T^{2/3})$ expected regret for classification. Our theoretical findings are validated through comprehensive simulations, mapping out strategic advantage regions and confirming the empirical convergence rates under varying environment dynamics.
+\end{abstract}
+
+\keywords{Strategic Machine Learning, Voluntary Disclosure, Stackelberg Games, Sample Complexity, Online Regret, Surrogate Loss}
+
+\maketitle
+
+%% Section 1: Introduction & Related Work
+\input{sections/1_introduction.tex}
+
+%% Section 2: Unified Problem Formulation
+\input{sections/2_formulation.tex}
+
+%% Section 3: Regression under Strategic Withholding
+\input{sections/3_regression.tex}
+
+%% Section 4: Multiclass Classification under Strategic Withholding
+\input{sections/4_classification.tex}
+
+%% Section 5: Simulation Results & Empirical Validation
+\input{sections/5_experiments.tex}
+
+%% Section 6: Conclusion and Future Work
+\input{sections/6_conclusion.tex}
+
+%% Section 7: Postponed Proofs
+\input{sections/7_postponed_proofs.tex}
+
+%% Declarations & Acknowledgments
+\begin{acks}
+The authors thank the members of the Systems and Control group at IIT Bombay for
+stimulating discussions on mechanism design and strategic learning. The authors
+also thank the anonymous reviewers whose comments substantially improved the
+presentation of this work.
+
+\paragraph{Generative AI Disclosure.}
+The authors acknowledge the use of AI-assisted writing and code-generation tools
+(including large language models) in preparing drafts of mathematical proofs,
+code outlines, and paper skeletons. All mathematical claims, theorems, and proofs
+have been independently verified by the authors. This disclosure is made in
+compliance with ACM's guidelines on the use of generative AI in scholarly
+publication.
+\end{acks}
+
+\section*{Funding Statement}
+This research was conducted as part of the doctoral programme at the Centre for
+Systems and Control, Indian Institute of Technology Bombay. No dedicated external
+grant funding was received for this specific study. The research infrastructure
+was supported by the Indian Institute of Technology Bombay.
+
+\section*{Competing Interests}
+The authors declare that they have no competing financial or personal interests
+that could have appeared to influence the work reported in this paper.
+
+%% Bibliography
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+
+\end{document}
