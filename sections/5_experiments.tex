@@ -44,7 +44,7 @@ We first validate our game-theoretic foundations by sweeping the environment par
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.6\textwidth]{regression_decision_sweep.png}
-    \caption{Regression Strategic Advantage $\Delta^*(E)$ as a function of feature-label correlation $\rho_{XY}$ and feature-preference correlation $\rho_{XU}$ (under channel noise $q = 0.3$). The dashed black contour delineates the boundary of the sufficient condition (Theorem 3.4).}
+    \caption{Regression Strategic Advantage $\Delta^*(E)$ as a function of feature-label correlation $\rho_{XY}$ and feature-preference correlation $\rho_{XU}$ (under channel noise $q = 0.3$, employing a coolwarm colormap). The dashed black contour delineates the boundary of the sufficient condition (Theorem 3.4).}
     \label{fig:regression_decision_sweep}
 \end{figure}
 
@@ -58,7 +58,7 @@ Figure~\ref{fig:regression_decision_sweep} displays the strategic advantage heat
     \includegraphics[width=0.48\textwidth]{classification_piecewise_linear.png}
     \hfill
     \includegraphics[width=0.48\textwidth]{classification_decision_sweep.png}
-    \caption{Classification decision results. Left: Piecewise-linear envelope of strategic risks for different defaults $i$, validating Theorem~\ref{thm:piecewise_linear_noise}; Right: Heatmap of strategic advantage $\Delta^*(q)$ over noise $q$ and alignment noise $\alpha$.}
+    \caption{Classification decision results. Left: Piecewise-linear envelope of strategic risks for different defaults $i$, validating Theorem~\ref{thm:piecewise_linear_noise}; Right: Heatmap of strategic advantage $\Delta^*(q)$ over noise $q$ and alignment noise $\alpha$ (consistent coolwarm colormap).}
     \label{fig:classification_decision_results}
 \end{figure}
 
@@ -72,14 +72,14 @@ Figure~\ref{fig:classification_decision_results} (left) plots the strategic risk
 \subsection{Offline Generalization Gaps}
 \label{sec:exp_offline}
 
-Next, we evaluate the offline learning curves by plotting the excess strategic risk $R_S(\hat{b}_n) - R_S(b^*)$ (for regression) and $R_S(\hat{\Theta}_n) - R_S(\Theta^*)$ (for classification) against the training sample size $n$, averaged over $15$ independent runs.
+Next, we evaluate the offline learning curves by performing multiple experiments with different training sample sizes $n \in \{50, 100, 200, 500, 1000, 2000, 4000\}$. We explicitly track the excess strategic risk $R_S(\hat{b}_n) - R_S(b^*)$ (for regression) and $R_S(\hat{\Theta}_n) - R_S(\Theta^*)$ (for multiclass classification) for each distinct training size $n$, represented as discrete points in our scatter plots, and averaged over $15$ independent runs.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.48\textwidth]{regression_offline_learning.png}
     \hfill
     \includegraphics[width=0.48\textwidth]{classification_offline_learning.png}
-    \caption{Offline learning curves showing the decay of the excess strategic risk on a log-log scale. Left: Regression excess risk converging at a rate matching the $\mathcal{O}(d^3/\sqrt{n})$ bound; Right: Classification excess risk converging at a rate matching the $\mathcal{O}(\sqrt{Kd/n})$ Natarajan dimension bound.}
+    \caption{Offline learning scatter plots showing the decay of the excess strategic risk on a log-log scale for varying training sizes $n$. Left: Regression excess risk converging at a rate matching the $\mathcal{O}(d^3/\sqrt{n})$ bound; Right: Multiclass classification excess risk converging at a rate matching the $\mathcal{O}(\sqrt{Kd/n})$ Natarajan dimension bound.}
     \label{fig:offline_learning_curves}
 \end{figure}
 
@@ -98,9 +98,9 @@ Finally, we analyze the online sequential learning setting under bandit feedback
     \includegraphics[width=0.48\textwidth]{regression_online_regret.png}
     \hfill
     \includegraphics[width=0.48\textwidth]{classification_online_regret.png}
-    \caption{Online expected cumulative regret curves under bandit feedback. Left: Regression regret under bandit OGD using one-point gradient estimates for $d=1$ and $d=3$, showing $\mathcal{O}(\sqrt{t})$ sublinear growth; Right: Classification regret under EXP3+OGD for $K=2$ and $K=3$, confirming the sublinear $\mathcal{O}(t^{2/3})$ regret bound.}
+    \caption{Online expected cumulative regret scatter plots under bandit feedback. Left: Regression regret under bandit OGD using one-point gradient estimates for $d=1$ and $d=3$, showing $\mathcal{O}(d\sqrt{t})$ sublinear growth with dimension-dependent reference benchmarks; Right: Classification regret under EXP3+OGD for $K=2$ and $K=3$, confirming the sublinear $\mathcal{O}((K \ln K)^{1/3} t^{2/3})$ regret bound with class-dependent benchmarks.}
     \label{fig:online_regret_curves}
 \end{figure}
 
-* **Regression Bandit OGD:** Figure~\ref{fig:online_regret_curves} (left) plots the cumulative regret of the one-point bandit gradient estimator. For both dimensions $d=1$ and $d=3$, the regret grows sublinearly, bounded by the $\mathcal{O}(\sqrt{t})$ theoretical curve. Comparing the two curves, we observe that the higher dimension $d=3$ incurs larger cumulative regret. This is due to the $d/\delta_t$ scaling in the one-point spherical gradient estimate, which increases variance in higher dimensions, matching Theorem~\ref{thm:bandit_feedback_rate}.
-* **Classification EXP3 + OGD:** Figure~\ref{fig:online_regret_curves} (right) plots the expected cumulative regret of our decoupled EXP3+OGD algorithm (Algorithm 1) for $K=2$ and $K=3$ classes. The regret grows sublinearly, conforming to the $\mathcal{O}(t^{2/3})$ reference curve proved in Theorem~\ref{thm:classification_regret_bound}. The curve for $K=3$ classes exhibits a slower convergence rate and higher regret than $K=2$ classes, as the meta-algorithm must explore a larger discrete choice space (EXP3 arms) to identify the optimal default class, validating the dimension-independent scaling with respect to $d$ but dependency on the number of classes $K$.
+* **Regression Bandit OGD:** Figure~\ref{fig:online_regret_curves} (left) displays a scatter plot of the cumulative regret of the one-point bandit gradient estimator. For both dimensions $d=1$ and $d=3$, the regret grows sublinearly, tightly bounded by their respective dimension-dependent $\mathcal{O}(d\sqrt{t})$ theoretical benchmarks. Comparing the two, we clearly observe that the higher dimension $d=3$ incurs proportionally larger cumulative regret. This is due to the $d/\delta_t$ scaling in the one-point spherical gradient estimate, matching Theorem~\ref{thm:bandit_feedback_rate}.
+* **Classification EXP3 + OGD:** Figure~\ref{fig:online_regret_curves} (right) presents a scatter plot of the expected cumulative regret of our decoupled EXP3+OGD algorithm (Algorithm 1) for $K=2$ and $K=3$ classes. The regret grows sublinearly, conforming to the distinct $K$-dependent $\mathcal{O}((K \ln K)^{1/3} t^{2/3})$ reference curves proved in Theorem~\ref{thm:classification_regret_bound}. The curve for $K=3$ classes exhibits a slower convergence rate and higher regret than $K=2$ classes, as the meta-algorithm must explore a larger discrete choice space (EXP3 arms) to identify the optimal default class.

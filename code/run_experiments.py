@@ -241,7 +241,7 @@ for a_idx, alpha_val in enumerate(alpha_grid):
         advantage_hm[a_idx, q_idx] = R_V_opt_val - R_S_opt_val
 
 plt.figure(figsize=(7, 6))
-plt.imshow(advantage_hm, extent=[0.05, 0.95, 0.05, 0.75], origin='lower', cmap='plasma', aspect='auto')
+plt.imshow(advantage_hm, extent=[0.05, 0.95, 0.05, 0.75], origin='lower', cmap='coolwarm', aspect='auto')
 plt.colorbar(label='Classification Strategic Advantage $\Delta^*(q)$')
 plt.xlabel('Default-Disclosure Probability $q$')
 plt.ylabel('Alignment Noise $\\alpha$')
@@ -306,7 +306,7 @@ for n in n_sizes:
     reg_excess_se.append(np.std(excess_runs) / np.sqrt(M_repeats))
 
 plt.figure(figsize=(6, 4))
-plt.errorbar(n_sizes, reg_excess_means, yerr=reg_excess_se, fmt='-o', color='blue', ecolor='lightblue', capsize=5, label='Regression')
+plt.errorbar(n_sizes, reg_excess_means, yerr=reg_excess_se, fmt='o', color='blue', ecolor='lightblue', capsize=5, label='Regression')
 plt.xlabel('Sample Size $n$')
 plt.ylabel('Excess Risk $R_S(\\hat{b}_n) - R_S(b^*)$')
 plt.title('Regression Offline Learning Curve')
@@ -380,7 +380,7 @@ for n in n_sizes:
     class_excess_se.append(np.std(excess_runs) / np.sqrt(M_repeats))
 
 plt.figure(figsize=(6, 4))
-plt.errorbar(n_sizes, class_excess_means, yerr=class_excess_se, fmt='-o', color='purple', ecolor='thistle', capsize=5, label='Classification')
+plt.errorbar(n_sizes, class_excess_means, yerr=class_excess_se, fmt='o', color='purple', ecolor='thistle', capsize=5, label='Classification')
 plt.xlabel('Sample Size $n$')
 plt.ylabel('Excess Risk $R_S(\\hat{\Theta}_n) - R_S(\\Theta^*)$')
 plt.title('Classification Offline Learning Curve')
@@ -474,11 +474,12 @@ regrets_d1 = run_bandit_ogd(X_1, Y_1, U_1, b_1, T_steps, 1)
 regrets_d3 = run_bandit_ogd(X_3, Y_3, U_3, b_3, T_steps, 3)
 
 plt.figure(figsize=(6, 4))
-plt.plot(regrets_d1, label='Dimension $d=1$', color='darkgreen')
-plt.plot(regrets_d3, label='Dimension $d=3$', color='crimson')
-# Plot O(sqrt(T)) helper curve
 T_axis = np.arange(1, T_steps + 1)
-plt.plot(T_axis, 2.5 * np.sqrt(T_axis), label='$\mathcal{O}(\sqrt{t})$ Reference', color='gray', linestyle='--')
+plt.scatter(T_axis, regrets_d1, label='Dimension $d=1$', color='darkgreen', s=1)
+plt.scatter(T_axis, regrets_d3, label='Dimension $d=3$', color='crimson', s=1)
+# Plot O(d * sqrt(T)) helper curves
+plt.plot(T_axis, 1.2 * 1 * np.sqrt(T_axis), label='$\mathcal{O}(d\sqrt{t})$ Ref ($d=1$)', color='darkgreen', linestyle='--')
+plt.plot(T_axis, 1.2 * 3 * np.sqrt(T_axis), label='$\mathcal{O}(d\sqrt{t})$ Ref ($d=3$)', color='crimson', linestyle='--')
 plt.xlabel('Time Step $t$')
 plt.ylabel('Cumulative Regret')
 plt.title('Regression Online Regret (Bandit Feedback)')
@@ -586,10 +587,11 @@ regrets_k2 = run_exp3_ogd(X_k2, Y_k2, U_k2, T_steps, 2)
 regrets_k3 = run_exp3_ogd(X_k3, Y_k3, U_k3, T_steps, 3)
 
 plt.figure(figsize=(6, 4))
-plt.plot(regrets_k2, label='Classes $K=2$', color='navy')
-plt.plot(regrets_k3, label='Classes $K=3$', color='orange')
 T_axis = np.arange(1, T_steps + 1)
-plt.plot(T_axis, 1.2 * T_axis**(2.0/3.0), label='$\mathcal{O}(t^{2/3})$ Reference', color='gray', linestyle='--')
+plt.scatter(T_axis, regrets_k2, label='Classes $K=2$', color='navy', s=1)
+plt.scatter(T_axis, regrets_k3, label='Classes $K=3$', color='orange', s=1)
+plt.plot(T_axis, 1.0 * (2 * np.log(2))**(1/3) * T_axis**(2.0/3.0), label='$\mathcal{O}((K \ln K)^{1/3} t^{2/3})$ Ref ($K=2$)', color='navy', linestyle='--')
+plt.plot(T_axis, 1.0 * (3 * np.log(3))**(1/3) * T_axis**(2.0/3.0), label='$\mathcal{O}((K \ln K)^{1/3} t^{2/3})$ Ref ($K=3$)', color='orange', linestyle='--')
 plt.xlabel('Time Step $t$')
 plt.ylabel('Expected Cumulative Regret')
 plt.title('Classification Online Regret (EXP3 + OGD)')

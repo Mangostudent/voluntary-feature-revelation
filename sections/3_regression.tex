@@ -217,58 +217,7 @@ where $\psi'(z) = \frac{d\psi(z)}{dz}$.
 \end{lemma}
 The proof is postponed to Section~\ref{app:proof_population_gradient}.
 
-We analyze learning guarantees under three feedback models.
-
-\subsubsection{Full Feedback Benchmark}
-In this setting, the receiver observes the complete triplet $(u_t, x_t, y_t)$ at the end of each round. This enables the calculation of an unbiased stochastic gradient $g_t$ of $L(b_t)$ defined as:
-\begin{equation}
-    \label{eq:full_feedback_gradient}
-    g_t = -2 \left[ \psi'(F_{b_t}(u_t, x_t))(u_t - b_t^\top x_t) G_{b_t}(x_t, y_t) x_t + \psi(F_{b_t}(u_t, x_t))(y_t - b_t^\top x_t)x_t \right].
-\end{equation}
-The receiver updates weights using projected online gradient descent (OGD):
-\begin{equation}
-    \label{eq:ogd_update}
-    b_{t+1} = \Pi_{\mathcal{W}}\left( b_t - \eta_t g_t \right).
-\end{equation}
-
-\begin{theorem}[Full-Feedback Convergence Rate]
-\label{thm:full_feedback_rate}
-Suppose that $L(b)$ is locally $\lambda$-strongly convex around a local minimizer $b^*$ with diameter $\|b_1 - b^*\|_2 \le D$ and bounded stochastic gradients $\|g_t\|_2 \le G$. By choosing the learning rate $\eta = \frac{D}{G\sqrt{T}}$, the expected cumulative strategic regret satisfies:
-\begin{equation}
-    \label{eq:full_feedback_bound}
-    \frac{1}{T}\sum_{t=1}^T \E[L(b_t) - L(b^*)] \le \cO\left( \frac{1}{\sqrt{T}} \right).
-\end{equation}
-\end{theorem}
-The proof is postponed to Section~\ref{app:proof_full_feedback_rate}.
-
-\subsubsection{Partial Feedback (Surrogate Approach)}
-In practice, the sender's private preference $u_t$ is hidden, and $x_t$ is observed only when $A_t = 1$. The receiver cannot compute $g_t$. To address this, the receiver uses a surrogate risk $\tilde{L}(b)$ that replaces $F_b$ with $G_b$ inside the revelation probability $\psi$:
-\begin{equation}
-    \label{eq:surrogate_risk_def}
-    \tilde{L}(b) = \E\left[ Y^2 - \psi(G_b(X, Y)) G_b(X, Y) \right].
-\end{equation}
-This leads to an observable surrogate gradient estimator $\tilde{g}_t$:
-\begin{equation}
-    \label{eq:surrogate_gradient_estimator}
-    \tilde{g}_t = \begin{cases}
-        -2 \left[ \psi'(G_{b_t}(x_t, y_t))(y_t - b_t^\top x_t) G_{b_t}(x_t, y_t) x_t + \psi(G_{b_t}(x_t, y_t))(y_t - b_t^\top x_t)x_t \right] & \text{if } A_t = 1, \\
-        0 & \text{if } A_t = 0.
-    \end{cases}
-\end{equation}
-The receiver updates using OGD with $\tilde{g}_t$. Let $p_{\min} = \inf_b \E[\psi(F_b(U, X))] > 0$ be the minimum expected revelation probability.
-\begin{theorem}[Partial-Feedback Convergence with Surrogate Bias]
-\label{thm:partial_feedback_rate}
-Suppose that $\tilde{L}(b)$ is locally $\lambda$-strongly convex and $L$-smooth around its local minimizer $\tilde{b}^*$. Under partial feedback, the OGD update achieves:
-\begin{equation}
-    \label{eq:partial_feedback_bound}
-    \frac{1}{T}\sum_{t=1}^T \E[L(b_t) - L(b^*)] \le \cO\left( \frac{1}{p_{\min}\sqrt{T}} \right) + \max\{\cO(\epsilon), \, \cO(\epsilon^2)\},
-\end{equation}
-where $\epsilon = \|U - Y\|_{L^2} = \sqrt{\E[(U - Y)^2]}$ represents the alignment error.
-\end{theorem}
-The proof is postponed to Section~\ref{app:proof_partial_feedback_rate}.
-
-\subsubsection{Bandit Feedback (Eliminating Landscape Bias)}
-To completely eliminate the asymptotic bias $\epsilon$ without observing preferences $U$, we can optimize $L(b)$ directly using a one-point bandit gradient estimator. While we do not observe $U$ or unrevealed features, the scalar loss $c_t = \ell_t(b_t)$ is always observable: $c_t = y_t^2$ if $A_t = 0$, and $c_t = (y_t - b_t^\top x_t)^2$ if $A_t = 1$.
+We analyze learning guarantees under a bandit feedback model. To eliminate the asymptotic bias caused by hidden sender preferences $U$ without observing them directly, we can optimize $L(b)$ directly using a one-point bandit gradient estimator. While we do not observe $U$ or unrevealed features, the scalar loss $c_t = \ell_t(b_t)$ is always observable: $c_t = y_t^2$ if $A_t = 0$, and $c_t = (y_t - b_t^\top x_t)^2$ if $A_t = 1$.
 
 At each round $t$, the receiver perturbs the slope parameter:
 \begin{equation}
