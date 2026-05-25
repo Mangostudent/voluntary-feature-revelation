@@ -35,6 +35,40 @@
 \newtheorem{remark}{Remark}
 \newtheorem{assumption}{Assumption}
 
+%% Humanified draft helpers
+\usepackage{xcolor}
+\definecolor{humanifycolor}{rgb}{0.0, 0.4, 0.7}
+\definecolor{tutorcolor}{rgb}{0.7, 0.3, 0.0}
+
+\newenvironment{sourceblock}[1]{%
+  \par\medskip\noindent\textcolor{gray!80}{\rule{\linewidth}{0.5pt}}\par
+  \noindent\textbf{\small [#1 --- Original Draft]}\par\small\itshape
+}{%
+  \par\noindent\textcolor{gray!80}{\rule{\linewidth}{0.5pt}}\par\medskip
+}
+
+\newenvironment{faqblock}{%
+  \par\medskip\noindent\begin{quote}\small\sffamily\slshape\color{humanifycolor}%
+  \textbf{\upshape [Humanify Guide: FAQ]}\par
+  \textbf{\upshape Questions:}\begin{enumerate}
+}{%
+  \end{enumerate}\end{quote}\medskip
+}
+
+\newcommand{\faqanswers}{%
+  \end{enumerate}\par\textbf{\upshape Answers:}\begin{enumerate}
+}
+
+\newcommand{\faqitem}[2]{\item \textbf{\upshape Q [#1]:} #2}
+\newcommand{\faqans}[2]{\item \textbf{\upshape A [#1]:} #2}
+
+\newenvironment{guideblock}{%
+  \par\medskip\noindent\begin{quote}\small\sffamily\slshape\color{tutorcolor}%
+  \textbf{\upshape [Tutor Guide: Guided Proof]}\begin{itemize}
+}{%
+  \end{itemize}\end{quote}\medskip
+}
+
 %% Custom macros for Strategic Feature Withholding
 \newcommand{\bV}{b_{\mathrm{V}}} % OLS estimator
 \newcommand{\bS}{b_{\mathrm{S}}} % Strategic optimal estimator
@@ -86,6 +120,22 @@
   \state{Karnataka}
   \country{India}
 }
+
+\begin{sourceblock}{Abstract}
+We investigate the framework of machine learning in the presence of strategic information disclosure, specifically focusing on the problem of voluntary feature revelation. This scenario is modeled as a Stackelberg game: a data provider (the sender) strategically determines whether to reveal or withhold optional features to optimize their individual payoff, while a decision-maker (the receiver) commits to a predictive model designed to minimize strategic prediction error. We analyze this interaction across two fundamental prediction spaces: continuous labels (regression) and discrete labels (multiclass classification). For both settings, we examine three sequential regimes of interaction: (i) the decision-theoretic game foundations, establishing necessary and sufficient conditions under which voluntary disclosure benefits the receiver; (ii) the offline batch learning problem, deriving uniform generalization bounds and sample complexity rates under finite training data; and (iii) the online learning problem, designing algorithms to learn under partial or bandit feedback in real-time. Since optimizing the discontinuous, step-like strategic risk is computationally intractable (NP-hard), we leverage smooth surrogate loss formulations to construct gradient-based optimization routines with rigorous regret guarantees—proving $O(\sqrt{T})$ regret for regression and $O(T^{2/3})$ expected regret for classification. Our theoretical findings are validated through comprehensive simulations, mapping out strategic advantage regions and confirming the empirical convergence rates under varying environment dynamics.
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Context}{What is the core problem addressed in this paper?}
+\faqitem{Process}{How is the interaction between sender and receiver modeled?}
+\faqitem{Process}{What are the three regimes examined for both regression and classification?}
+\faqitem{Consequence}{What are the key regret bounds established?}
+\faqanswers
+\faqans{Context}{Machine learning with strategic information disclosure; voluntary feature revelation by self-interested agents.}
+\faqans{Process}{As a Stackelberg game where sender strategically reveals/withholds features and receiver commits to a predictive model.}
+\faqans{Process}{(1) Decision-theoretic game foundations; (2) Offline batch learning; (3) Online learning under bandit feedback.}
+\faqans{Consequence}{Regression: $O(\sqrt{T})$ regret; Classification: $O(T^{2/3})$ expected regret.}
+\end{faqblock}
 
 \begin{abstract}
 We investigate the framework of machine learning in the presence of strategic information disclosure, specifically focusing on the problem of voluntary feature revelation. This scenario is modeled as a Stackelberg game: a data provider (the sender) strategically determines whether to reveal or withhold optional features to optimize their individual payoff, while a decision-maker (the receiver) commits to a predictive model designed to minimize strategic prediction error. We analyze this interaction across two fundamental prediction spaces: continuous labels (regression) and discrete labels (multiclass classification). For both settings, we examine three sequential regimes of interaction: (i) the decision-theoretic game foundations, establishing necessary and sufficient conditions under which voluntary disclosure benefits the receiver; (ii) the offline batch learning problem, deriving uniform generalization bounds and sample complexity rates under finite training data; and (iii) the online learning problem, designing algorithms to learn under partial or bandit feedback in real-time. Since optimizing the discontinuous, step-like strategic risk is computationally intractable (NP-hard), we leverage smooth surrogate loss formulations to construct gradient-based optimization routines with rigorous regret guarantees—proving $O(\sqrt{T})$ regret for regression and $O(T^{2/3})$ expected regret for classification. Our theoretical findings are validated through comprehensive simulations, mapping out strategic advantage regions and confirming the empirical convergence rates under varying environment dynamics.
@@ -144,6 +194,6 @@ that could have appeared to influence the work reported in this paper.
 
 %% Bibliography
 \bibliographystyle{ACM-Reference-Format}
-\bibliography{references_library/references}
+\bibliography{references}
 
 \end{document}

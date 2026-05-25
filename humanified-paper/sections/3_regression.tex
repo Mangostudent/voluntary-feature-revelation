@@ -1,0 +1,497 @@
+\section{Regression under Strategic Withholding}
+\label{sec:regression}
+
+\begin{sourceblock}{Paragraph 1 - Section Overview}
+In this section, we specialize the general voluntary disclosure model to continuous prediction spaces where the labels are real-valued, $\mathcal{Y} = \R$, and features lie in a vector space $\mathcal{X} \subseteq \R^d$. We focus on linear predictors under quadratic loss, reflecting the classical setting of strategic linear regression. We analyze three sequential regimes of interaction: first, the decision-theoretic game foundations under a known joint distribution, characterizing when voluntary feature disclosure provides a strategic advantage over a baseline of mandatory disclosure; second, the offline batch learning problem under an unknown distribution, analyzing how many training samples are needed to learn the optimal model; and third, the online sequential learning problem under bandit feedback, designing algorithms to update the receiver's model dynamically in real-time.
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Context}{What continuous prediction space setting is specialized here?}
+\faqitem{Process}{What three regimes of interaction are analyzed in this section?}
+\faqanswers
+\faqans{Context}{Real-valued labels $\mathcal{Y} = \R$ with linear predictors under quadratic (squared error) loss.}
+\faqans{Process}{(1) Decision-theoretic game foundations; (2) Offline batch learning; (3) Online sequential learning under bandit feedback.}
+\end{faqblock}
+
+\begin{sourceblock}{Paragraph 2 - Mandatory Baseline and Strategic Advantage}
+To analyze the decision-theoretic game, we contrast the voluntary disclosure model with a baseline of mandatory disclosure, where the sender is contractually obligated to always reveal their features. Under this baseline, the feature vector $X$ is revealed unless it is lost in transmission. For any receiver strategy $H_b = (b, d)$ with a linear predictor $h_b(x) = b^\top x$ and default prediction $d = 0$, the mandatory disclosure risk (vanilla risk) is $R_V(b, q) = (1 - q)\E_{(X, Y) \sim \mathcal{P}} [ (b^\top X - Y)^2 ] + q\E_{Y \sim \mathcal{P}} [ Y^2 ]$. The optimal mandatory risk is $R_V^*(q) = \min_{b \in \R^d} R_V(b, q)$. We define the strategic advantage $\Delta(E)$ of the environment as the difference in prediction risk achieved by voluntary disclosure relative to mandatory disclosure: $\Delta(E) = R_V^*(q) - R_S^*(q)$, where $R_S^*(q)$ is the optimal strategic risk. A positive strategic advantage ($\Delta(E) > 0$) implies that voluntary disclosure is strictly beneficial to the receiver.
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Context}{What baseline is used to contrast voluntary disclosure?}
+\faqitem{Process}{How is the vanilla risk $R_V(b, q)$ defined?}
+\faqitem{Conclusion}{What is the strategic advantage $\Delta(E)$ and what does a positive value imply?}
+\faqanswers
+\faqans{Context}{Mandatory disclosure baseline where the sender is contractually obligated to always reveal features.}
+\faqans{Process}{$R_V(b, q) = (1 - q)\E[(b^\top X - Y)^2] + q\E[Y^2]$, modeling OLS predictor with erasure probability $q$.}
+\faqans{Conclusion}{Difference between optimal mandatory and voluntary risk: $\Delta(E) = R_V^*(q) - R_S^*(q)$; positive means voluntary disclosure benefits the receiver.}
+\end{faqblock}
+
+\begin{sourceblock}{Paragraph 3 - Learning Setup Overview}
+Under learning settings where the joint distribution $\mathcal{P}$ is unknown, the receiver must estimate the optimal predictor from data. In the offline batch learning setup, the receiver has access to a training set of $n$ i.i.d. samples and seeks to find an empirical predictor that minimizes the true strategic risk, bounding the generalization gap $R_S(\hat{b}, q) - R_S(b^*, q)$ as a function of the sample size $n$. In the online sequential learning setup under partial or bandit feedback, the receiver updates the parameter $b_t$ over rounds $t=1,\dots,T$ based only on the observed message $M_t \in \{x_t, \emptyset\}$ and the true label $y_t$ (without observing the sender's private preference $u_t$), aiming to minimize the expected cumulative regret $\text{Regret}(T) = \E[\sum_{t=1}^T R_S(b_t, q)] - \min_{b} \sum_{t=1}^T R_S(b, q)$.
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Context}{What is the goal in the offline batch learning setup?}
+\faqitem{Process}{What feedback is available in the online learning setup?}
+\faqitem{Conclusion}{How is the cumulative regret defined in the online setting?}
+\faqanswers
+\faqans{Context}{Find an empirical predictor that minimizes the true strategic risk and bound the generalization gap.}
+\faqans{Process}{Partial/bandit feedback: receiver only sees features when sender reveals, and only observes label feedback $y_t$.}
+\faqans{Conclusion}{Regret is the difference between cumulative strategic risk of predictions and that of the best fixed predictor in hindsight.}
+\end{faqblock}
+
+\subsection{The Regression Decision Problem}
+\label{sec:regression_decision}
+
+\begin{sourceblock}{Paragraph 4 - Game Variables and Loss Functions}
+Let $(U, X, Y) \sim \mathcal{P}$ be a joint random variable representing the sender's preference, features, and true labels, respectively. We assume that all variables are zero-mean, i.e., $\E[X] = 0$, $\E[Y] = 0$, and $\E[U] = 0$. 
+
+The receiver committed strategy space consists of linear predictors that predict $0$ on empty messages and $b^\top x$ on revealed messages:
+\begin{equation}
+    \mathcal{H} = \{h_b : h_b(\emptyset) = 0, \, h_b(x) = b^\top x, \, b \in \R^d\}.
+\end{equation}
+Both players evaluate outcomes using the squared loss function:
+\begin{equation}
+    \ell_R(\hat{y}, y) = (\hat{y} - y)^2, \quad \ell_S(\hat{y}, u) = (\hat{y} - u)^2.
+\end{equation}
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Causes}{Why do we assume zero-mean variables?}
+\faqitem{Process}{How is the predictor space defined for empty vs. revealed messages?}
+\faqitem{Process}{What loss functions are used by both players?}
+\faqanswers
+\faqans{Causes}{Simplifies algebra by equating moments directly to variance/covariance.}
+\faqans{Process}{Predicts $0$ on empty messages ($\emptyset$), and linear combination $b^\top x$ on revealed features.}
+\faqans{Process}{Squared loss: $\ell_R(\hat{y}, y) = (\hat{y} - y)^2$ for receiver; $\ell_S(\hat{y}, u) = (\hat{y} - u)^2$ for sender.}
+\end{faqblock}
+
+\begin{sourceblock}{Paragraph 5 - Key Game Statistics}
+For a given receiver slope parameter $b \in \R^d$, we define two central statistics that dictate the game dynamics:
+\begin{equation}
+    \label{eq:Fb_def}
+    F_b(U, X) = (2U - b^\top X)b^\top X,
+\end{equation}
+\begin{equation}
+    \label{eq:Gb_def}
+    G_b(X, Y) = (2Y - b^\top X)b^\top X.
+\end{equation}
+The statistic $F_b(U, X)$ governs the sender's disclosure decision, while $G_b(X, Y)$ measures the receiver's error reduction when features are successfully disclosed, representing $Y^2 - (Y - b^\top X)^2$.
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Process}{What roles do the statistics $F_b(U, X)$ and $G_b(X, Y)$ play?}
+\faqanswers
+\faqans{Process}{$F_b(U, X)$ dictates the sender's disclosure strategy; $G_b(X, Y)$ measures the receiver's variance/error reduction when features are revealed.}
+\end{faqblock}
+
+\begin{sourceblock}{Lemma 3.2 - Vanilla Risk Decomposition}
+We first characterize the baseline mandatory disclosure risk.
+\begin{lemma}[Vanilla Risk Decomposition]
+\label{lem:vanilla_risk}
+For any receiver slope $b \in \R^d$ and erasure probability $q$, the vanilla risk under mandatory disclosure decomposes as:
+\begin{equation}
+    \label{eq:vanilla_risk_decomp}
+    \RV(b, q) = \mathrm{Var}(Y) - (1 - q)\mathrm{Var}(\bV^\top X) + (1 - q)\mathrm{Var}((b - \bV)^\top X),
+\end{equation}
+where $\bV = \mathrm{Var}(X)^{-1}\mathrm{Cov}(X, Y)$ is the ordinary least-squares (OLS) slope. The optimal vanilla risk is:
+\begin{equation}
+    \label{eq:opt_vanilla_risk}
+    \RV^*(q) = \mathrm{Var}(Y) - (1 - q)\mathrm{Var}(\bV^\top X).
+\end{equation}
+\end{lemma}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Vanilla Risk baseline}: Think of $R_V(b, q)$ as the benchmark where players are forced to reveal.
+\item \textbf{Deriving the Decomposition}: Add and subtract the optimal OLS predictor $\bV^\top X$ inside the squared loss expectation $\E[(Y - b^\top X)^2]$.
+\item \textbf{OLS Orthogonality}: Expand the square and recall that the OLS residuals $Y - \bV^\top X$ are orthogonal to the feature space $X$, so the cross-product expectation vanishes.
+\item \textbf{Optimal Choice}: Observe that the risk is minimized when the quadratic term $\mathrm{Var}((b - \bV)^\top X)$ is zero, which happens uniquely at $b = \bV$.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_vanilla_risk}.
+
+\begin{sourceblock}{Lemma 3.3 - Sender Best Response}
+Next, we characterize the strategic best response of the sender follower.
+\begin{lemma}[Sender Best Response]
+\label{lem:best_response}
+For a committed receiver strategy $b \in \R^d$, the sender's optimal disclosure decision is:
+\begin{equation}
+    \label{eq:best_response_indicator}
+    D^*(b; U, X) = \I{F_b(U, X) > 0}.
+\end{equation}
+That is, the sender reveals features if and only if $F_b(U, X) > 0$.
+\end{lemma}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Disclosure Decision}: Senders compare their expected loss from withholding ($D=0$) to revealing ($D=1$).
+\item \textbf{Expectation over Erasure}: Under withholding, the loss is always $u^2$. Under disclosure, the feature is lost with probability $q$ (giving loss $u^2$) and received with probability $1-q$ (giving loss $(b^\top x - u)^2$).
+\item \textbf{Simplification}: Set up the inequality $(1-q)(b^\top x - u)^2 + q u^2 < u^2$. Dividing by $1-q$ yields $(b^\top x - u)^2 < u^2$, which simplifies to $F_b(u, x) > 0$.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_best_response}.
+
+\begin{sourceblock}{Lemma 3.4 - Strategic Risk Formula}
+Using the sender's best response, the receiver's strategic risk can be formulated as follows.
+\begin{lemma}[Strategic Risk Formula]
+\label{lem:strategic_risk_formula}
+For any slope parameter $b \in \R^d$ and channel erasure probability $q$, the strategic risk is:
+\begin{equation}
+    \label{eq:strategic_risk_formula}
+    \RS(b, q) = \mathrm{Var}(Y) - (1 - q)\E\left[ G_b(X, Y) \I{F_b(U, X) > 0} \right].
+\end{equation}
+\end{lemma}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Conditional Risk Structure}: Express risk as the sum of risks when features are withheld ($I_t = 0$) and when they are revealed ($I_t = 1$).
+\item \textbf{Reorganizing Terms}: Group the terms by $Y^2$. Subtract the gain achieved when features are successfully transmitted.
+\item \textbf{Expectation Identification}: Identify $G_b(X, Y) = Y^2 - (Y - b^\top X)^2$ as the reduction in loss from feature disclosure.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_strategic_risk}.
+
+\begin{sourceblock}{Paragraph 6 - Strategic Advantage Definition}
+By comparing the optimal vanilla risk $\RV^*(q)$ and the strategic risk $\RS(b, q)$, we derive the conditions under which voluntary disclosure is strictly beneficial to the receiver, yielding a positive strategic advantage:
+\begin{equation}
+    \label{eq:strategic_advantage_formula}
+    \Delta(E) = \RV^*(q) - \min_{b \in \R^d} \RS(b, q) > 0.
+\end{equation}
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Process}{How is the strategic advantage $\Delta(E)$ of the environment defined?}
+\faqanswers
+\faqans{Process}{$\Delta(E) = R_V^*(q) - R_S^*(q)$, representing the error reduction achieved by giving senders a choice vs. forcing them to reveal.}
+\end{faqblock}
+
+\begin{sourceblock}{Theorem 3.5 - Sufficient Condition for Strategic Advantage}
+We establish a sufficient condition for voluntary disclosure to outperform mandatory disclosure.
+\begin{theorem}[Sufficient Condition for Strategic Advantage]
+\label{thm:sufficient_condition}
+For a given environment $E$, the strategic advantage is positive if there exists a vector $b \in \R^d$ such that:
+\begin{equation}
+    \label{eq:sufficient_condition}
+    \|U - Y\|_2 < \frac{\E[|G_b(X, Y)|] - \mathrm{Var}(\bV^\top X) - \mathrm{Var}((b - \bV)^\top X)}{4\sqrt{\mathrm{Var}(b^\top X)}},
+\end{equation}
+where $\|U - Y\|_2 = \sqrt{\E[(U - Y)^2]}$ represents the alignment of the preference value $U$ with the ground truth $Y$.
+\end{theorem}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Analysing Difference}: Write the risk difference $\RS(b, q) - \RV^*(q)$.
+\item \textbf{Gain Decomposition}: Express $\E[G_b \mathbf{1}\{F_b > 0\}]$ in terms of OLS variance and the expectation on the withholding region $F_b \le 0$.
+\item \textbf{Sign Mismatch}: Relate the difference between $F_b$ and $G_b$ to the alignment error $Y - U$.
+\item \textbf{Cauchy-Schwarz Application}: Use Cauchy-Schwarz and expectation bounds to isolate $\|U - Y\|_2$ and find the sufficient condition.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_sufficient_condition}.
+
+\begin{sourceblock}{Theorem 3.6 - Necessary Condition for Strategic Advantage}
+We also establish a matching necessary condition.
+\begin{theorem}[Necessary Condition for Strategic Advantage]
+\label{thm:necessary_condition}
+A necessary condition for the strategic advantage to be positive is that there exists a vector $b \in \R^d$ satisfying:
+\begin{equation}
+    \label{eq:necessary_condition}
+    \E[|G_b(X, Y)|] - \mathrm{Var}(\bV^\top X) - \mathrm{Var}((b - \bV)^\top X) > 0.
+\end{equation}
+\end{theorem}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Lower-bounding the expectation}: Lower-bound $G_b \mathbf{1}\{F_b \le 0\}$ pointwise by $G_b \mathbf{1}\{G_b \le 0\}$.
+\item \textbf{Taking expectations}: Substitute this lower bound into the risk difference.
+\item \textbf{Proof by Contrapositive}: Assume the condition fails for all $b$, and show that this forces the strategic risk difference to be always non-negative.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_necessary_condition}.
+
+\begin{sourceblock}{Remark 1 - Impact of Channel Noise}
+\begin{remark}
+Crucially, the channel noise parameter $q$ acts only as a scaling factor on the strategic advantage and does not affect the validity of the sufficient or necessary conditions. If Theorem~\ref{thm:necessary_condition} fails, voluntary disclosure cannot yield lower risk than mandatory disclosure for any noise level $q \in (0, 1)$.
+\end{remark}
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Consequence}{How does the channel noise $q$ affect the strategic advantage conditions?}
+\faqanswers
+\faqans{Consequence}{Acts only as a scaling factor; does not affect the validity of the necessary or sufficient conditions.}
+\end{faqblock}
+
+\subsection{Offline Learning (Batch Sample Complexity)}
+\label{sec:regression_offline}
+
+\begin{sourceblock}{Paragraph 7 - Bounded Support and Strategy Space}
+When the underlying joint distribution $\mathcal{P}$ is unknown, the receiver must estimate the optimal predictor from a training set of $n$ i.i.d. samples $S = \{(u_i, x_i, y_i)\}_{i=1}^n$. 
+
+To prevent overfitting and establish uniform bounds, we assume that the data support is bounded, i.e., $\|x_i\|_\infty \le C$, $|u_i| \le C$, and $|y_i| \le C$ almost surely for a constant $C > 0$. The receiver restricts slope parameters to a bounded domain:
+\begin{equation}
+    \mathcal{W} = \{b \in \R^d : \|b\|_\infty \le C\}.
+\end{equation}
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Context}{What sample size and support conditions are assumed for offline learning?}
+\faqitem{Process}{How is the receiver's parameter domain restricted?}
+\faqanswers
+\faqans{Context}{$n$ i.i.d. samples; bounded support $\|x\|_\infty \le C$, $|u| \le C$, $|y| \le C$ to ensure learning stability.}
+\faqans{Process}{Restricted to a hypercube domain $\mathcal{W} = \{b \in \R^d : \|b\|_\infty \le C\}$.}
+\end{faqblock}
+
+\begin{sourceblock}{Paragraph 8 - Empirical Risks and Estimators}
+For any committed slope $b$, we define the empirical vanilla risk and empirical strategic risk over the sample $S$ as:
+\begin{equation}
+    \label{eq:empirical_vanilla_risk}
+    \RhatV(b, q) = \frac{1}{n}\sum_{i=1}^n y_i^2 - (1 - q)\frac{1}{n}\sum_{i=1}^n (y_i - b^\top x_i)^2,
+\end{equation}
+\begin{equation}
+    \label{eq:empirical_strategic_risk}
+    \RhatS(b, q) = \frac{1}{n}\sum_{i=1}^n y_i^2 - (1 - q)\frac{1}{n}\sum_{i=1}^n G_b(x_i, y_i) \I{F_b(u_i, x_i) > 0}.
+\end{equation}
+
+The empirical optimal estimators are defined by:
+\begin{equation}
+    \label{eq:empirical_estimators}
+    \bhatV \in \argmin_{b \in \mathcal{W}} \RhatV(b, q), \quad \bhatS \in \argmin_{b \in \mathcal{W}} \RhatS(b, q).
+\end{equation}
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Process}{How are the empirical vanilla risk $\RhatV$ and empirical strategic risk $\RhatS$ defined?}
+\faqanswers
+\faqans{Process}{Empirical averages of quadratic loss (vanilla) and strategic loss/gains (strategic) computed over the training sample $S$.}
+\end{faqblock}
+
+\begin{sourceblock}{Algorithm 1 - SR-ERM}
+The receiver executes the offline empirical risk minimization algorithm detailed in Algorithm~\ref{alg:regression_offline}.
+
+\begin{algorithm}[htbp]
+\caption{Strategic Regression Empirical Risk Minimization (SR-ERM)}
+\label{alg:regression_offline}
+\begin{algorithmic}[1]
+\State \textbf{Input:} Training set $S = \{(u_i, x_i, y_i)\}_{i=1}^n$, channel erasure probability $q$, bounded domain parameter $C$.
+\State \textbf{Define:} Strategy space $\mathcal{W} = \{b \in \R^d : \|b\|_\infty \le C\}$.
+\State \textbf{Define:} Functions $F_b(u_i, x_i) = (2u_i - b^\top x_i)b^\top x_i$ and $G_b(x_i, y_i) = (2y_i - b^\top x_i)b^\top x_i$ for all $i \in \{1,\dots,n\}$.
+\State \textbf{Formulate Empirical Risks:}
+\begin{align*}
+    \RhatV(b, q) &= \frac{1}{n}\sum_{i=1}^n y_i^2 - (1 - q)\frac{1}{n}\sum_{i=1}^n (y_i - b^\top x_i)^2 \\
+    \RhatS(b, q) &= \frac{1}{n}\sum_{i=1}^n y_i^2 - (1 - q)\frac{1}{n}\sum_{i=1}^n G_b(x_i, y_i) \I{F_b(u_i, x_i) > 0}
+\end{align*}
+\State \textbf{Compute Empirical Strategic Advantage:}
+\begin{equation*}
+    \hat{\Delta}(S) = \min_{b \in \mathcal{W}} \RhatV(b, q) - \min_{b \in \mathcal{W}} \RhatS(b, q)
+\end{equation*}
+\State \textbf{Output:} Optimal empirical predictors $\bhatV$ and $\bhatS$, and strategic advantage estimate $\hat{\Delta}(S)$.
+\end{algorithmic}
+\end{algorithm}
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Process}{What are the inputs and outputs of the SR-ERM algorithm?}
+\faqanswers
+\faqans{Process}{Inputs: training samples, channel erasure $q$, domain $C$. Outputs: empirical optimal parameters $\bhatV, \bhatS$ and empirical strategic advantage $\hat{\Delta}(S)$.}
+\end{faqblock}
+
+\begin{sourceblock}{Lemma 3.8 - Uniform Generalization of Vanilla Risk}
+We derive uniform generalization bounds for both disclosure regimes.
+\begin{lemma}[Uniform Generalization of Vanilla Risk]
+\label{lem:vanilla_generalization}
+Let $\delta \in (0, 1)$. With probability at least $1 - \delta$ over the random draw of $S$:
+\begin{equation}
+    \label{eq:vanilla_gen_bound}
+    \sup_{b \in \mathcal{W}} |\RV(b, q) - \RhatV(b, q)| \le \cO\left( \frac{d^2 C^4}{\sqrt{n}} + C^2 \sqrt{\frac{\log(1/\delta)}{n}} \right).
+\end{equation}
+\end{lemma}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Generalization Gap Decomposition}: Split risk difference into a target variance concentration term and a quadratic loss function class term.
+\item \textbf{Hoeffding Bound}: Use Hoeffding's inequality for the target variance term since $Y^2$ is bounded.
+\item \textbf{Rademacher Complexity and Lipschitz Contraction}: Bound the complexity of the linear class, and use Talagrand's contraction lemma to handle the quadratic loss composition.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_vanilla_generalization}.
+
+\begin{sourceblock}{Lemma 3.9 - Uniform Generalization of Strategic Risk}
+\begin{lemma}[Uniform Generalization of Strategic Risk]
+\label{lem:strategic_generalization}
+Let $\delta \in (0, 1)$. With probability at least $1 - \delta$ over the random draw of $S$:
+\begin{equation}
+    \label{eq:strategic_gen_bound}
+    \sup_{b \in \mathcal{W}} |\RS(b, q) - \RhatS(b, q)| \le \cO\left( d^3 C^4 \sqrt{\frac{\log n}{n}} + C^2 \sqrt{\frac{\log(1/\delta)}{n}} \right).
+\end{equation}
+\end{lemma}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Product Class Complexity}: Analyze the strategic term as a product class of indicator functions $\mathcal{F}$ and quadratic gains $\mathcal{G}$.
+\item \textbf{VC Dimension of Halfspaces}: Lift the quadratic boundary $F_b > 0$ to linear halfspaces in $\cO(d^2)$ dimensions using polynomial embedding, bounding $d_{\mathrm{VC}}(\mathcal{F})$.
+\item \textbf{Product Bound}: Use the Rademacher product class complexity bounds to combine the complexities of $\mathcal{F}$ and $\mathcal{G}$.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_strategic_generalization}.
+
+\begin{sourceblock}{Theorem 3.10 - Generalization Bound for Strategic Advantage}
+These bounds enable us to show that the empirical strategic advantage $\hat{\Delta}(S) = \min_{b} \RhatV(b, q) - \min_{b} \RhatS(b, q)$ is a consistent estimator of the true strategic advantage.
+\begin{theorem}[Generalization Bound for Strategic Advantage]
+\label{thm:advantage_generalization}
+Let $\delta \in (0, 1)$. With probability at least $1 - \delta$ over the random draw of $S$:
+\begin{equation}
+    \label{eq:advantage_gen_bound}
+    |\Delta(E) - \hat{\Delta}(S)| \le \cO\left( d^3 C^4 \sqrt{\frac{\log n}{n}} + C^2 \sqrt{\frac{\log(1/\delta)}{n}} \right).
+\end{equation}
+\end{theorem}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Infimum inequality}: Relate the difference between two infimums to the supremum of the differences.
+\item \textbf{Union Bound}: Apply union bounds to the results of Lemmas 3.8 and 3.9, taking their sum.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_advantage_generalization}.
+
+\begin{sourceblock}{Theorem 3.11 - Excess Risk of the Joint Learner}
+Combining these generalization limits with a stability analysis of the decision boundary, we bound the excess risk of the joint learning algorithm.
+\begin{theorem}[Excess Risk of the Joint Learner]
+\label{thm:excess_risk_guarantee}
+Let $\delta \in (0, 1)$. The excess strategic risk of the joint selection algorithm $\mathcal{A}$ relative to the optimal oracle choice satisfies:
+\begin{equation}
+    \label{eq:excess_risk_bound}
+    \E_S[R(\mathcal{A}, S)] \le \cO\left( d^3 C^4 \sqrt{\frac{\log n}{n}} + C^2 \sqrt{\frac{\log(1/\delta)}{n}} \right).
+\end{equation}
+\end{theorem}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Two Cases}: Analyze two cases based on whether the empirical advantage $\hat{\Delta}(S)$ is larger or smaller than the uniform generalization bound.
+\item \textbf{Regime selection penalty}: Show that if a suboptimal regime is chosen, the true risk difference is bounded by $2\epsilon(n, \delta)$.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_excess_risk_guarantee}.
+
+\subsection{Online Learning (Sequential Adaptive Control)}
+\label{sec:regression_online}
+
+\begin{sourceblock}{Paragraph 9 - Online Game Setup}
+We now study the online learning problem where the receiver sequentially updates their linear predictor weight $b_t \in \mathcal{W}$ over rounds $t = 1, \dots, T$. To separate the channel friction from the learning dynamics, we assume $q = 0$ in this subsection (i.e., a noiseless channel where voluntary disclosure determines revelation directly).
+
+At each round $t$, the receiver commits to weight $b_t \in \mathcal{W}$ and nature draws the private sender characteristics $(u_t, x_t, y_t) \sim \mathcal{P}$. Senders disclose their features with a probability governed by a smooth, $\rho$-Lipschitz approximation $\psi: \R \to [0, 1]$ of the step function, so that the revelation indicator is drawn as $A_t \sim \mathrm{Bernoulli}(\psi(F_{b_t}(u_t, x_t)))$ with $F_{b_t}(u_t, x_t) = (2u_t - b_t^\top x_t)b_t^\top x_t$. The receiver then observes the incoming message $M_t = x_t$ if successfully revealed ($A_t = 1$), and $M_t = \emptyset$ if withheld ($A_t = 0$), outputting the prediction $\hat{y}_t = A_t b_t^\top x_t$ and suffering the quadratic loss $\ell_t(b_t) = (1 - A_t)y_t^2 + A_t(y_t - b_t^\top x_t)^2$.
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Context}{What channel noise value $q$ is assumed in the online section?}
+\faqitem{Process}{How does the sender's revelation probability vary in this online setup?}
+\faqanswers
+\faqans{Context}{$q = 0$, simulating a noiseless channel where disclosure translates directly to revelation.}
+\faqans{Process}{Governed by a smooth, $\rho$-Lipschitz approximation $\psi$ of the step function, evaluated on the statistic $F_{b_t}$.}
+\end{faqblock}
+
+\begin{sourceblock}{Paragraph 10 - Strategic Population Risk}
+The true strategic population risk is:
+\begin{equation}
+    \label{eq:pop_risk_online}
+    L(b) = \E_{(U,X,Y) \sim \mathcal{P}}\left[ Y^2 - \psi(F_b(U, X)) G_b(X, Y) \right],
+\end{equation}
+where $G_b(X, Y)$ is defined as in~\eqref{eq:Gb_def}. The gradient of this non-convex risk is derived below.
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Process}{How is the strategic population risk $L(b)$ formulated online?}
+\faqanswers
+\faqans{Process}{Expectation over the population of target loss minus the smoothed gain $\psi(F_b)G_b$.}
+\end{faqblock}
+
+\begin{sourceblock}{Lemma 3.12 - Population Gradient Formula}
+\begin{lemma}[Population Gradient Formula]
+\label{lem:population_gradient}
+The gradient of the strategic population risk is:
+\begin{equation}
+    \label{eq:population_gradient}
+    \nabla L(b) = -2 \E\left[ \psi'(F_b(U, X))(U - b^\top X) G_b(X, Y) X + \psi(F_b(U, X))(Y - b^\top X)X \right],
+\end{equation}
+where $\psi'(z) = \frac{d\psi(z)}{dz}$.
+\end{lemma}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Product and Chain Rule}: Apply the product rule to the expectation of $\psi(F_b(U, X)) G_b(X, Y)$.
+\item \textbf{Inner derivative}: Differentiate $F_b$ and $G_b$ with respect to the parameter vector $b$.
+\item \textbf{Combining terms}: Group terms to yield the final population gradient expression.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_population_gradient}.
+
+\begin{sourceblock}{Paragraph 11 - Bandit Feedback Challenge}
+We analyze learning guarantees under a bandit feedback model. To eliminate the asymptotic bias caused by hidden sender preferences $U$ without observing them directly, we can optimize $L(b)$ directly using a one-point bandit gradient estimator. While we do not observe $U$ or unrevealed features, the scalar loss $c_t = \ell_t(b_t)$ is always observable: $c_t = y_t^2$ if $A_t = 0$, and $c_t = (y_t - b_t^\top x_t)^2$ if $A_t = 1$.
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Context}{What feedback is available under the online bandit model?}
+\faqanswers
+\faqans{Context}{Only the scalar loss $c_t = \ell_t(b_t)$ is observed each round; the features $X_t$ and preference $U_t$ are hidden if $A_t = 0$.}
+\end{faqblock}
+
+\begin{sourceblock}{Paragraph 12 - Perturbation and Algorithm 2}
+At each round $t$, the receiver perturbs the slope parameter:
+\begin{equation}
+    \label{eq:perturbed_parameter}
+    \hat{b}_t = b_t + \delta_t v_t,
+    \quad v_t \sim \text{Uniform}(\mathbb{S}^{d-1}),
+\end{equation}
+where $\delta_t > 0$ is the exploration radius. The receiver observes $c_t = \ell_t(\hat{b}_t)$ and updates the center parameter $b_t$ using the bandit gradient estimator:
+The sequential update procedure under bandit feedback is detailed in Algorithm~\ref{alg:regression_online_bandit}.
+
+\begin{algorithm}[htbp]
+\caption{Strategic Bandit Online Gradient Descent (SB-OGD)}
+\label{alg:regression_online_bandit}
+\begin{algorithmic}[1]
+\State \textbf{Initialize:} Parameter domain $\mathcal{W} = \{b \in \R^d : \|b\|_2 \le R\}$, center point $b_1 \in \mathcal{W}$, step-size parameters $\eta_t$, exploration radii $\delta_t$.
+\For{$t = 1, \dots, T$}
+    \State Sample direction vector $v_t \sim \text{Uniform}(\mathbb{S}^{d-1})$ on the unit sphere.
+    \State Formulate perturbed parameter: $\hat{b}_t = b_t + \delta_t v_t$.
+    \State Commit to policy parameterized by $\hat{b}_t$ and observe sender's revelation outcome $A_t \in \{0, 1\}$.
+    \State Suffer and observe scalar loss: 
+    \begin{equation*}
+        c_t = \begin{cases}
+            y_t^2 & \text{if } A_t = 0, \\
+            (y_t - \hat{b}_t^\top x_t)^2 & \text{if } A_t = 1.
+        \end{cases}
+    \end{equation*}
+    \State Compute unbiased bandit gradient estimate: $\hat{g}_t = \frac{d}{\delta_t} c_t v_t$.
+    \State Update center parameter: $b_{t+1} = \Pi_{\mathcal{W}}\left( b_t - \eta_t \hat{g}_t \right)$.
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Process}{How is the slope perturbed each round in SB-OGD?}
+\faqitem{Process}{What is the mathematical form of the bandit gradient estimate $\hat{g}_t$?}
+\faqanswers
+\faqans{Process}{By adding a random spherical step: $\hat{b}_t = b_t + \delta_t v_t$, where $v_t$ is uniformly sampled from the unit sphere.}
+\faqans{Process}{$\hat{g}_t = \frac{d}{\delta_t} c_t v_t$, using only the scalar loss $c_t$ and direction $v_t$.}
+\end{faqblock}
+
+\begin{sourceblock}{Theorem 3.14 - Bandit-Feedback Regret Bound}
+\begin{theorem}[Bandit-Feedback Regret Bound]
+\label{thm:bandit_feedback_rate}
+Assume that the true risk $L(b)$ is locally $\lambda$-strongly convex and $H$-smooth. By running the bandit gradient descent algorithm with learning rate $\eta_t = \frac{1}{\lambda t}$ and exploration radius $\delta_t = \delta_0 t^{-1/4}$, the expected average strategic regret satisfies:
+\begin{equation}
+    \label{eq:bandit_feedback_bound}
+    \frac{1}{T}\sum_{t=1}^T \E[L(\hat{b}_t) - L(b^*)] \le \cO\left( \frac{d}{\sqrt{T}} \right).
+\end{equation}
+\end{theorem}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Spherical Expectation}: Confirm that the expectation of the bandit gradient estimator $\hat{g}_t$ is the gradient of the smoothed population risk $\hat{L}_{\delta_t}(b_t)$.
+\item \textbf{Smoothing Approximation}: Use Taylor's theorem and $H$-smoothness to bound the difference between the smoothed and true risks by $\cO(H\delta_t^2)$.
+\item \textbf{OGD strong-convexity regret}: Bound the cumulative regret of the center parameter $b_t$ on the smoothed functions using standard strongly convex OGD steps.
+\item \textbf{Exploration/Exploitation Balance}: Choose the optimal step-size parameters $\eta_t$ and exploration radii $\delta_t$ to balance variance and bias, giving the $\cO(d/\sqrt{T})$ rate.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_bandit_feedback_rate}.
+
+\begin{sourceblock}{Remark 2 - Rate-Bias Trade-Off}
+\begin{remark}
+The bandit feedback algorithm eliminates the landscape bias floor $\epsilon$ entirely at the cost of a dimension-dependent scaling factor $d$ and variance inflation. This establishes a clean rate-bias trade-off for online learning under strategic feature withholding.
+\end{remark}
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Consequence}{What trade-off is established by the bandit feedback algorithm?}
+\faqanswers
+\faqans{Consequence}{It eliminates the asymptotic bias at the expense of a dimension-dependent factor $d$ and increased variance.}
+\end{faqblock}

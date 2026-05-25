@@ -10,6 +10,7 @@
 *.fls
 *.run.xml
 *.bcf
+comment.cut
 *.pdf
 
 # Build directories

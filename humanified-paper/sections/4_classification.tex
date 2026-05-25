@@ -1,0 +1,483 @@
+\section{Multiclass Classification under Strategic Withholding}
+\label{sec:classification}
+
+\begin{sourceblock}{Paragraph 1 - Section Overview}
+In this section, we specialize the general voluntary disclosure model to discrete prediction spaces where the outcome labels are finite, $\mathcal{Y} = \{1, \dots, K\}$, and the sender's preferences are also discrete, $\mathcal{U} = \{1, \dots, K\}$. We analyze this interaction under the standard 0-1 loss function, which poses unique mathematical challenges due to its discontinuity. We analyze three sequential regimes of interaction: first, the decision-theoretic game foundations under a known joint distribution, showing how the optimal default class partitions the unit interval of channel noise; second, the offline batch learning problem under an unknown distribution, deriving the sample complexity for a joint default-predictor learner; and third, the online sequential learning problem, presenting an adaptive algorithm to update both the default class and the predictor weights in real-time under bandit feedback.
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Context}{What discrete prediction space and preferences are studied here?}
+\faqitem{Causes}{Why does the 0-1 loss function pose unique mathematical challenges?}
+\faqitem{Process}{What three regimes of interaction are analyzed in this section?}
+\faqanswers
+\faqans{Context}{Finite discrete label space $\mathcal{Y} = \{1, \dots, K\}$ and discrete preferences $\mathcal{U} = \{1, \dots, K\}$.}
+\faqans{Causes}{Discontinuity of the 0-1 loss introduces non-convexities and step-like strategic risks.}
+\faqans{Process}{(1) Decision-theoretic game foundations; (2) Offline batch learning; (3) Online sequential learning under bandit feedback.}
+\end{faqblock}
+
+\begin{sourceblock}{Paragraph 2 - Mandatory Baseline and Strategic Advantage}
+To analyze the decision-theoretic classification game, we contrast the strategic setting with a baseline of mandatory disclosure, where the sender is contractually obligated to always reveal their features. For any default class $i \in \{1,\dots,K\}$ and classifier $h: \mathcal{X} \to \{1,\dots,K\}$, the mandatory disclosure risk (vanilla risk) is $R_V(h, i; q) = (1 - q)\E_{(X, Y) \sim \mathcal{P}} [ \I{h(X) \ne Y} ] + q\E_{Y \sim \mathcal{P}} [ \I{i \ne Y} ]$. The optimal vanilla risk is $R_V^*(q) = \min_{h, i} R_V(h, i; q)$. We define the strategic advantage $\Delta(E)$ of the environment as the difference in prediction risk achieved by voluntary disclosure relative to mandatory disclosure: $\Delta(E) = R_V^*(q) - R_S^*(q)$, where $R_S^*(q)$ is the optimal strategic risk. A positive strategic advantage ($\Delta(E) > 0$) implies that voluntary disclosure is strictly beneficial to the receiver.
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Context}{What mandatory baseline risk is defined for classification?}
+\faqitem{Conclusion}{How is the strategic advantage $\Delta(E)$ defined in classification?}
+\faqanswers
+\faqans{Context}{$R_V(h, i; q) = (1 - q)\E[\I{h(X) \ne Y}] + q\E[\I{i \ne Y}]$ for a classifier $h$ and default class $i$.}
+\faqans{Conclusion}{Difference between optimal mandatory and voluntary risks: $\Delta(E) = R_V^*(q) - R_S^*(q)$; positive value means receiver benefits from sender choice.}
+\end{faqblock}
+
+\begin{sourceblock}{Paragraph 3 - Learning Setup Overview}
+Under learning settings where the joint distribution $\mathcal{P}$ is unknown, the receiver must estimate the optimal default class and classifier from data. In the offline batch learning setup, the receiver has access to a training set of $n$ i.i.d. samples and seeks to find an empirical default-classifier pair that minimizes the true strategic risk, bounding the generalization gap $R_S(\hat{i}, \hat{h}, q) - R_S(i^*, h^*, q)$ as a function of the sample size $n$. In the online sequential learning setup, the receiver updates the default class $i_t$ and the classifier weights $\Theta_t$ over rounds $t=1,\dots,T$ based only on the observed message $M_t \in \{x_t, \emptyset\}$ and the true label $y_t$ (without observing the sender's private preference $u_t$), aiming to minimize the expected cumulative regret $\text{Regret}(T) = \E[\sum_{t=1}^T R_S(i_t, \Theta_t; q)] - \min_{i, \Theta} \sum_{t=1}^T R_S(i, \Theta; q)$.
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Context}{What variables are learned in the offline and online setups?}
+\faqitem{Process}{What feedback is available to the receiver in the online sequential setup?}
+\faqanswers
+\faqans{Context}{Both the default class $i$ and the classifier weights/predictor $h$.}
+\faqans{Process}{Bandit feedback: receiver only sees features and label feedback for the committed default class $i_t$.}
+\end{faqblock}
+
+\subsection{The Classification Decision Problem}
+\label{sec:classification_decision}
+
+\begin{sourceblock}{Paragraph 4 - Game Variables and Loss Functions}
+Let $(U, X, Y) \sim \mathcal{P}$ be the joint random variable representing the sender's preference, features, and true labels, respectively. Senders and the receiver evaluate predictions using the 0-1 loss:
+\begin{equation}
+    \ell(y, \hat{y}) = \I{y \ne \hat{y}}.
+\end{equation}
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Process}{What loss function is used by players in the classification game?}
+\faqanswers
+\faqans{Process}{Standard 0-1 classification loss: $\ell(y, \hat{y}) = \I{y \ne \hat{y}}$.}
+\end{faqblock}
+
+\begin{sourceblock}{Paragraph 5 - Policy Setup and Subpopulation Risks}
+The receiver commits to a default prediction class $i \in \{1, \dots, K\}$ for empty messages, i.e., $\hat{y}(\emptyset) = i$. If features are revealed, the receiver deploys the Bayes classifier conditioned on the revealed subpopulation:
+\begin{equation}
+    \label{eq:bayes_classifier}
+    h_i(X) \in \argmax_{c \in \{1, \dots, K\}} \Pr(Y = c \mid X, \, U \ne i).
+\end{equation}
+Let $\pi_i = \Pr(U = i)$ denote the probability that the sender's preferred class is $i$. The Bayes risk on the subpopulation with preference $U \ne i$ is:
+\begin{equation}
+    \label{eq:bayes_risk_def}
+    r^{(-i)}_X = \E\left[ \I{h_i(X) \ne Y} \;\middle|\; U \ne i \right].
+\end{equation}
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Process}{How is the predictor $h_i(X)$ chosen when features are revealed?}
+\faqitem{Process}{How is the subpopulation Bayes risk $r_X^{(-i)}$ defined?}
+\faqanswers
+\faqans{Process}{Bayes classifier conditioned on the revealed subpopulation where the sender's preference $U \ne i$.}
+\faqans{Process}{Expected 0-1 prediction error of the Bayes predictor $h_i(X)$ over the subpopulation $U \ne i$.}
+\end{faqblock}
+
+\begin{sourceblock}{Lemma 4.2 - Sender Best Response in Classification}
+We first analyze the follower sender's best response to this policy.
+\begin{lemma}[Sender Best Response in Classification]
+\label{lem:class_best_response}
+For a committed default class $i \in \{1, \dots, K\}$, the sender's utility-maximizing disclosure strategy is:
+\begin{equation}
+    \label{eq:class_best_response}
+    D^*(i; U, X) = \I{U \ne i}.
+\end{equation}
+That is, senders with preferred class $i$ withhold features ($D = 0$), while senders with preferred class $U \ne i$ reveal features ($D = 1$).
+\end{lemma}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Sender Incentives}: Break down the sender's preferred class into two cases: $U=i$ and $U \ne i$.
+\item \textbf{Case $U=i$}: Show that withholding features ($D=0$) leads to the receiver outputting the default class $i$, which yields a loss of $0$ for the sender.
+\item \textbf{Case $U \ne i$}: Under withholding, the loss is $1$. Under disclosure, show that the expected loss is strictly less than $1$ (assuming $h_i(X)$ has some probability of predicting $U$).
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_class_best_response}.
+
+\begin{sourceblock}{Lemma 4.3 - Strategic Risk for Default class i}
+Using the best-response policy, we derive the strategic risk for each committed default class $i$.
+\begin{lemma}[Strategic Risk for Default class $i$]
+\label{lem:class_strategic_risk}
+For a committed default class $i$, the receiver's strategic prediction risk under channel noise $q$ is:
+\begin{equation}
+    \label{eq:class_strategic_risk}
+    R^i_S(q) = \Pr(Y \ne i) + (1 - \pi_i)(1 - q)\left( r^{(-i)}_X - \Pr(Y \ne i \mid U \ne i) \right).
+\end{equation}
+\end{lemma}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Subpopulation Partitioning}: Partition the population expectation into $U=i$ and $U \ne i$ subpopulations.
+\item \textbf{Withholding Subpopulation}: Under $U=i$, the features are always withheld, yielding prediction $i$.
+\item \faqitem{Process}{For $U \ne i$, account for the erasure probability $q$: with probability $1-q$ the features are received, and with probability $q$ they are lost, defaulting to $i$.}
+\item \textbf{Law of Total Probability}: Use the relation for $\Pr(Y \ne i)$ to combine the terms into the final affine function of $q$.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_class_strategic_risk}.
+
+\begin{sourceblock}{Paragraph 6 - Affine Risk Geometry}
+Equation~\eqref{eq:class_strategic_risk} shows that for any fixed default class $i$, the strategic risk is an affine function of the noise parameter $q$. This affine structure yields a strong geometric property at the endpoints of the noise interval.
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Consequence}{What does the affine structure of $R^i_S(q)$ imply about the risk geometry?}
+\faqanswers
+\faqans{Consequence}{Enables analyzing risks at the boundary endpoints ($q=0$ and $q=1$) to establish global properties.}
+\end{faqblock}
+
+\begin{sourceblock}{Theorem 4.4 - Dominance of the Vanilla Best Constant}
+\begin{theorem}[Dominance of the Vanilla Best Constant]
+\label{thm:vanilla_dominance}
+Let $c^* \in \argmin_i \Pr(Y \ne i)$ be the optimal default class under mandatory disclosure (the vanilla best constant). If $c^*$ is the optimal default class at both $q = 1$ and $q = 0$, then it remains optimal for all $q \in [0, 1]$.
+\end{theorem}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Difference Affine Property}: Define the risk difference $f_j(q) = R^j_S(q) - R^{c^*}_S(q)$ and note that it is affine in $q$.
+\item \textbf{Endpoint Minimization}: Recall that the minimum of an affine function on the interval $[0,1]$ must occur at one of the endpoints.
+\item \textbf{Completing the Proof}: Show that if $f_j(0) \ge 0$ and $f_j(1) \ge 0$, then $f_j(q) \ge 0$ for all $q \in [0,1]$.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_vanilla_dominance}.
+
+\begin{sourceblock}{Theorem 4.5 - Piecewise-Linear Partition of the Noise Interval}
+By taking the lower envelope of the $K$ affine strategic risk functions, we characterize the optimal strategic risk $R^*_S(q) = \min_i R^i_S(q)$.
+\begin{theorem}[Piecewise-Linear Partition of the Noise Interval]
+\label{thm:piecewise_linear_noise}
+The optimal strategic risk $R^*_S(q)$ is a concave, piecewise-linear function of $q$. The channel noise interval $[0, 1]$ is partitioned into at most $K$ subintervals, on each of which a single default class is optimal.
+\end{theorem}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Lower Envelope Analysis}: Express $R_S^*(q)$ as the pointwise minimum of $K$ lines.
+\item \textbf{Concavity of Envelope}: Recall that the pointwise minimum of affine functions is concave and piecewise-linear.
+\item \textbf{Transition Bounds}: Deduce that $K$ lines can intersect to form at most $K$ distinct active segments on the envelope.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_piecewise_linear_noise}.
+
+\begin{sourceblock}{Remark 3 - Computing Default Regions}
+\begin{remark}
+This geometric structure allows the receiver to compute the optimal default regions efficiently. For each of the $\binom{K}{2}$ pairs of defaults, the receiver solves the linear equation $R^i_S(q) = R^j_S(q)$. The intersection points partition $[0, 1]$ into a collection of active default regions.
+\end{remark}
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Consequence}{How can the optimal default regions be computed in practice?}
+\faqanswers
+\faqans{Consequence}{By finding the pairwise intersections of risk lines, which defines the boundaries of the optimal subintervals.}
+\end{faqblock}
+
+\subsection{Offline Learning (Sample Complexity)}
+\label{sec:classification_offline}
+
+\begin{sourceblock}{Paragraph 7 - Hypothesis Class Setup}
+When the joint distribution $\mathcal{P}$ is unknown, the receiver must learn the optimal default class and classifier weights from $n$ i.i.d. training samples $S = \{(u_j, x_j, y_j)\}_{j=1}^n$. 
+
+For each default class $i$, the receiver's model is parameterized by a weight matrix $\Theta_i \in \R^{K \times d}$ with $\|\Theta_i\|_\infty \le C$. The score vector is $s = \Theta_i x$, and the classifier is:
+\begin{equation}
+    \label{eq:multiclass_classifier_form}
+    h_{\Theta_i}(x) \in \argmax_{c \in \{1, \dots, K\}} \langle \theta_{i,c}, x \rangle.
+\end{equation}
+The hypothesis class is $\mathcal{H}_i = \{h_{\Theta} : \Theta \in \R^{K \times d}, \, \|\Theta\|_\infty \le C\}$. 
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Context}{How is the classifier $h_{\Theta_i}(x)$ parameterized for multiclass classification?}
+\faqanswers
+\faqans{Context}{Linear score model using a weight matrix $\Theta_i \in \R^{K \times d}$ where predictions pick the highest scoring class.}
+\end{faqblock}
+
+\begin{sourceblock}{Paragraph 8 - Empirical Strategic Risk}
+The empirical strategic risk under default $i$ and classifier $h$ is:
+\begin{equation}
+    \label{eq:empirical_strategic_classification_risk}
+    \hat{R}^i_S(h, q) = \frac{1}{n}\sum_{j=1}^n \left[ \I{u_j = i}\I{i \ne y_j} + \I{u_j \ne i} \left( q\I{i \ne y_j} + (1 - q)\I{h(x_j) \ne y_j} \right) \right].
+\end{equation}
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Process}{How is the empirical strategic risk $\hat{R}^i_S(h, q)$ formulated?}
+\faqanswers
+\faqans{Process}{Empirical average of 0-1 classification losses over the training sample, accounting for default prediction $i$ on withholding and $h(x)$ on revelation.}
+\end{faqblock}
+
+\begin{sourceblock}{Algorithm 3 - SC-ERM}
+The receiver deploys the joint selection empirical risk minimization algorithm detailed in Algorithm~\ref{alg:classification_offline}.
+
+\begin{algorithm}[htbp]
+\caption{Strategic Classification Empirical Risk Minimization (SC-ERM)}
+\label{alg:classification_offline}
+\begin{algorithmic}[1]
+\State \textbf{Input:} Training set $S = \{(u_j, x_j, y_j)\}_{j=1}^n$, class size $K$, channel erasure probability $q$, bounded domain parameter $C$.
+\State \textbf{Define:} Hypothesis classes $\mathcal{H}_i = \{h_{\Theta} : \Theta \in \R^{K \times d}, \, \|\Theta\|_\infty \le C\}$ for all $i \in \{1,\dots,K\}$, where $h_{\Theta}(x) \in \argmax_c \langle \theta_c, x \rangle$.
+\For{each default class $i \in \{1, \dots, K\}$}
+    \State Formulate the empirical strategic risk under default $i$:
+    \begin{equation*}
+        \hat{R}^i_S(h, q) = \frac{1}{n}\sum_{j=1}^n \left[ \I{u_j = i}\I{i \ne y_j} + \I{u_j \ne i} \left( q\I{i \ne y_j} + (1 - q)\I{h(x_j) \ne y_j} \right) \right].
+    \end{equation*}
+    \State Compute the empirical strategic risk minimizer:
+    \begin{equation*}
+        \hat{h}_i \in \argmin_{h \in \mathcal{H}_i} \hat{R}^i_S(h, q).
+    \end{equation*}
+\EndFor
+\State \textbf{Joint Selection:} Select the optimal default-predictor pair:
+\begin{equation*}
+    (\hat{i}, \hat{h}) \in \argmin_{i \in \{1, \dots, K\}, \, h = \hat{h}_i} \hat{R}^i_S(h, q).
+\end{equation*}
+\State \textbf{Output:} Optimal default class $\hat{i}$ and strategic classifier $\hat{h}$.
+\end{algorithmic}
+\end{algorithm}
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Process}{How are the predictor $\hat{h}_i$ and the default $\hat{i}$ determined in SC-ERM?}
+\faqanswers
+\faqans{Process}{First computes the empirical risk minimizer $\hat{h}_i$ for each class, then performs a joint minimization over all possible defaults.}
+\end{faqblock}
+
+\begin{sourceblock}{Assumption 2 - Nondegenerate Revealed Mass}
+We make the following assumption regarding the availability of data:
+\begin{assumption}[Nondegenerate Revealed Mass]
+\label{ass:nondegenerate_mass}
+There exists a constant $\gamma > 0$ such that the probability of features being revealed is lower-bounded by $\gamma$, i.e., $\min_{i} \Pr(U \ne i) \ge \gamma$.
+\end{assumption}
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Context}{What does the nondegenerate revealed mass assumption ensure?}
+\faqanswers
+\faqans{Context}{Guarantees that for every default class, the probability that the sender reveals features is at least a positive fraction $\gamma$.}
+\end{faqblock}
+
+\begin{sourceblock}{Lemma 4.7 - Effective Sample Size Concentration}
+Under this assumption, we bound the sample size of the revealed subpopulation.
+\begin{lemma}[Effective Sample Size Concentration]
+\label{lem:effective_sample_size}
+Let $\delta \in (0, 1)$. With probability at least $1 - \delta/2$ over the draw of $S$, the number of revealed samples $n_i = \sum_{j=1}^n \I{u_j \ne i}$ satisfies:
+\begin{equation}
+    \label{eq:sample_size_concentration}
+    n_i \ge \frac{\gamma n}{2} \quad \forall i \in \{1, \dots, K\}
+\end{equation}
+simultaneously, provided the training sample size $n$ is sufficiently large.
+\end{lemma}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Bernoulli Sum}: Model the indicator variables $I_j = \I{u_j \ne i}$ as independent Bernoulli trials with success probability at least $\gamma$.
+\item \textbf{Deviation Bound}: Apply Hoeffding's inequality to bound the negative deviation of $n_i/n$ from its expected value.
+\item \textbf{Union Bound}: Apply a union bound over all $K$ default classes to ensure the concentration holds for all of them simultaneously.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_effective_sample_size}.
+
+\begin{sourceblock}{Lemma 4.8 - Natarajan's Sauer-Shelah Lemma}
+To establish uniform generalization, we leverage the Natarajan dimension.
+\begin{lemma}[Natarajan's Sauer-Shelah Lemma]
+\label{lem:natarajan_lemma}
+Let $\mathcal{H}$ be a hypothesis class of functions from $\mathcal{X}$ to $\{1, \dots, K\}$ with Natarajan dimension $d_N$. For any sample of size $n$, the number of distinct labelings $|\mathcal{H}|_S|$ is bounded by:
+\begin{equation}
+    \label{eq:natarajan_bound}
+    |\mathcal{H}|_S| \le \sum_{j=0}^{d_N} \binom{n}{j} \binom{K}{2}^j.
+\end{equation}
+\end{lemma}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Induction Setup}: Perform induction on sample size $n$ and Natarajan dimension $d_N$.
+\item \textbf{Prefix Partitioning}: Partition the realizable labelings by their restrictions to the first $n-1$ points.
+\item \textbf{Pascal's Recurrence}: Apply Pascal's recurrence relation $\binom{n-1}{i} + \binom{n-1}{i-1} = \binom{n}{i}$ to combine the inductive bounds.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_natarajan_lemma}.
+
+\begin{sourceblock}{Lemma 4.9 - Fixed-Default Uniform Convergence}
+Using Natarajan's lemma and Rademacher complexity over discrete 0-1 losses, we establish fixed-default convergence.
+\begin{lemma}[Fixed-Default Uniform Convergence]
+\label{lem:fixed_default_convergence}
+For any fixed default class $i$, with probability at least $1 - \delta/K$:
+\begin{equation}
+    \label{eq:fixed_default_bound}
+    \sup_{h \in \mathcal{H}_i} |R^i_S(h, q) - \hat{R}^i_S(h, q)| \le \cO\left( \sqrt{\frac{K d \log n}{n}} + \sqrt{\frac{\log(K/\delta)}{n}} \right).
+\end{equation}
+\end{lemma}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Subpopulation Decomposition}: Split the difference into withholding and revealed subpopulation terms.
+\item \textbf{Rademacher Complexity on 0-1 Loss}: Apply the standard Rademacher generalization bound to the binary 0-1 loss class on the revealed subpopulation.
+\item \textbf{Massart's Lemma and Sauer-Shelah}: Bound the empirical Rademacher complexity of the multiclass predictor class using Massart's lemma and Lemma 4.8.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_fixed_default_convergence}.
+
+\begin{sourceblock}{Lemma 4.10 - Uniform Convergence Over All Defaults}
+By taking a union bound over the $K$ default classes, we obtain simultaneous convergence.
+\begin{lemma}[Uniform Convergence Over All Defaults]
+\label{lem:simultaneous_convergence}
+With probability at least $1 - \delta$:
+\begin{equation}
+    \label{eq:simultaneous_bound}
+    \sup_{i \in \{1, \dots, K\}} \sup_{h \in \mathcal{H}_i} |R^i_S(h, q) - \hat{R}^i_S(h, q)| \le \cO\left( \sqrt{\frac{K d \log n}{n}} + \sqrt{\frac{\log(K/\delta)}{n}} \right).
+\end{equation}
+\end{lemma}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Union Bound}: Apply a union bound over the $K$ default classes to the fixed-default uniform convergence result of Lemma 4.9.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_simultaneous_convergence}.
+
+\begin{sourceblock}{Theorem 4.11 - Excess Risk of the Learned Strategy}
+This simultaneous generalization guarantees that the empirical optimal strategy achieves near-oracle excess risk.
+\begin{theorem}[Excess Risk of the Learned Strategy]
+\label{thm:classification_excess_risk}
+Let $(\hat{i}^*, \hat{h})$ be the strategy chosen by the joint selection learner. With probability at least $1 - \delta$:
+\begin{equation}
+    \label{eq:classification_excess_risk}
+    R^S_{\hat{i}^*}(\hat{h}, q) - \min_{i, h \in \mathcal{H}_i} R^i_S(h, q) \le \cO\left( \sqrt{\frac{K d \log n}{n}} + \sqrt{\frac{\log(K/\delta)}{n}} \right).
+\end{equation}
+\end{theorem}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Oracle Risk Bound}: Write the excess risk as the difference between the risk of the chosen strategy and the oracle minimum.
+\item \textbf{Uniform Bound Application}: Apply the uniform convergence bound of Lemma 4.10 to bound both the chosen strategy risk and the optimal risk estimation error.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_classification_excess_risk}.
+
+\subsection{Online Learning (Sequential Strategic Classification)}
+\label{sec:classification_online}
+
+\begin{sourceblock}{Paragraph 9 - Online Game Formulation}
+We now study online multiclass classification over rounds $t = 1, \dots, T$. At each round $t$, the receiver commits to a default class $i_t \in \{1, \dots, K\}$ and a predictor parameter matrix $\Theta_t \in \R^{K \times d}$. Nature then draws the private sender characteristics $(u_t, x_t, y_t) \sim \mathcal{P}$, and the sender discloses features if their preference $u_t$ does not match the receiver's default $i_t$. Finally, the receiver observes the message $M_t = x_t$ if successfully disclosed (and not erased), and $M_t = \emptyset$ if withheld. The receiver predicts the class label using the default $i_t$ on empty messages and the linear scoring model otherwise, suffering a 0-1 prediction loss.
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Context}{How does the sender decide to reveal features in the online setting?}
+\faqanswers
+\faqans{Context}{Reveals if and only if their private preference $u_t$ differs from the receiver's committed default $i_t$.}
+\end{faqblock}
+
+\begin{sourceblock}{Paragraph 10 - Surrogate Loss Formulation}
+The discontinuous 0-1 loss is non-convex. Furthermore, the receiver only observes features and label feedback for the committed default $i_t$ (bandit feedback). We replace the 0-1 loss with the multiclass cross-entropy surrogate:
+\begin{equation}
+    \label{eq:cross_entropy_surrogate}
+    \phi(\Theta; x, y) = -\log \left( \frac{\exp(\langle \theta_y, x \rangle)}{\sum_{c=1}^K \exp(\langle \theta_c, x \rangle)} \right).
+\end{equation}
+The surrogate strategic loss at round $t$ is:
+\begin{equation}
+    \label{eq:surrogate_strategic_loss_t}
+    \tilde{\ell}_t(i, \Theta) = \I{u_t = i}\I{i \ne y_t} + \I{u_t \ne i} \phi(\Theta; x_t, y_t).
+\end{equation}
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Process}{Why and how is the 0-1 loss replaced in this online setting?}
+\faqanswers
+\faqans{Process}{Replaced by the multiclass cross-entropy surrogate $\phi$ to enable gradient-based continuous updates, yielding surrogate strategic loss $\tilde{\ell}_t(i, \Theta)$.}
+\end{faqblock}
+
+\begin{sourceblock}{Algorithm 4 - Decoupled EXP3 + OGD}
+To learn both the discrete default classes and the continuous predictors, we propose the decoupled **EXP3 + OGD** algorithm detailed in Algorithm~\ref{alg:online_classification_main_text}.
+
+\begin{algorithm}[h]
+\caption{Online Multiclass Classification with Strategic Withholding}
+\label{alg:online_classification_main_text}
+\begin{algorithmic}[1]
+\State \textbf{Initialize:} For each $i \in \{1, \dots, K\}$, initialize $\Theta_{1,i} \in \mathcal{W}$ and weight $w_{1,i} = 1$. Let $\eta > 0$ be the learning rate, and $\gamma \in (0, 1]$ be the exploration parameter.
+\For{$t = 1, \dots, T$}
+    \State Compute selection probabilities:
+    \begin{equation*}
+        p_{t,i} = (1-\gamma) \frac{w_{t,i}}{\sum_{j=1}^K w_{t,j}} + \frac{\gamma}{K}.
+    \end{equation*}
+    \State Sample default class $i_t \sim p_{t}$.
+    \State Commit to default class $i_t$ and predictor $\Theta_{t, i_t}$.
+    \State Observe message $M_t \in \{x_t, \emptyset\}$.
+    \If{$M_t = \emptyset$}
+        \State Suffer loss $L_t = \I{y_t \ne i_t}$ (or use an unbiased proxy) and set $\Theta_{t+1, i_t} = \Theta_{t, i_t}$.
+    \Else
+        \State Predict $\hat{y}_t = \argmax_c \langle \theta_{t,i_t, c}, x_t \rangle$ and observe true label $y_t$.
+        \State Suffer surrogate loss $L_t = \phi(\Theta_{t, i_t}; x_t, y_t)$.
+        \State Compute importance-weighted gradient:
+        \begin{equation*}
+            \hat{g}_t = \frac{1}{p_{t, i_t}} \nabla \phi(\Theta_{t, i_t}; x_t, y_t).
+        \end{equation*}
+        \State Update predictor weights: $\Theta_{t+1, i_t} = \Pi_{\mathcal{W}}\left( \Theta_{t, i_t} - \eta \hat{g}_t \right)$.
+    \EndIf
+    \State For all unselected defaults $j \ne i_t$, keep weights unchanged: $\Theta_{t+1, j} = \Theta_{t, j}$.
+    \State Construct unbiased loss estimate: $\hat{L}_{t, i} = \frac{L_t}{p_{t, i_t}} \I{i = i_t}$.
+    \State Update EXP3 weights: $w_{t+1, i} = w_{t, i} \exp\left(-\frac{\gamma}{K} \hat{L}_{t, i}\right)$ for all $i \in \{1, \dots, K\}$.
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Process}{How are the selection probabilities $p_{t, i}$ formulated in this algorithm?}
+\faqanswers
+\faqans{Process}{Mixture of the EXP3 weight ratio (exploitation) and a uniform distribution (exploration) parameterized by $\gamma$.}
+\end{faqblock}
+
+\begin{sourceblock}{Lemma 4.13 - EXP3 Regret Bound}
+We decompose the surrogate regret into the selection regret of EXP3 and the optimization regret of OGD.
+\begin{lemma}[EXP3 Regret Bound]
+\label{lem:exp3_regret}
+Let $L_{t, i} = \tilde{\ell}_t(i, \Theta_{t,i}) \in [0, B]$ be the strategic surrogate loss. Under Algorithm~\ref{alg:online_classification_main_text}, the expected regret of the default selection against any fixed $i^*$ is:
+\begin{equation}
+    \label{eq:exp3_regret}
+    \E\left[ \sum_{t=1}^T \tilde{\ell}_t(i_t, \Theta_{t, i_t}) \right] - \E\left[ \sum_{t=1}^T \tilde{\ell}_t(i^*, \Theta_{t, i^*}) \right] \le B \gamma T + \frac{B K \ln K}{\gamma}.
+\end{equation}
+\end{lemma}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{KL Divergence Weight analysis}: Use the relative entropy (KL divergence) of the EXP3 weights as a potential function.
+\item \textbf{Unbiased Loss Estimate}: Show that the expectation of the importance-weighted loss estimate $\hat{L}_{t, i}$ matches the true conditional loss $L_{t,i}$.
+\item \textbf{Potential Bound}: Bound the potential difference round-by-round to establish the regret inequality.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_exp3_regret}.
+
+\begin{sourceblock}{Lemma 4.14 - Importance-Weighted OGD Regret}
+\begin{lemma}[Importance-Weighted OGD Regret]
+\label{lem:ogd_regret}
+Suppose the surrogate loss $\phi$ is $G$-Lipschitz in $\Theta$, and $\mathcal{W}$ has Euclidean diameter $D$. For any fixed default $i^*$ and predictor $\Theta^*$, the OGD update satisfies:
+\begin{equation}
+    \label{eq:ogd_regret}
+    \E\left[ \sum_{t=1}^T \tilde{\ell}_t(i^*, \Theta_{t, i^*}) \right] - \sum_{t=1}^T \tilde{\ell}_t(i^*, \Theta^*) \le \frac{D^2}{2\eta} + \frac{\eta G^2 K T}{2 \gamma}.
+\end{equation}
+\end{lemma}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Continuous Parameter Regret}: Analyze the OGD updates for the active parameter matrix $\Theta_t$.
+\item \textbf{Gradient Variance}: Bound the expected squared norm of the importance-weighted gradient $\hat{g}_t$ by $\cO(G^2 K / \gamma)$.
+\item \textbf{Combining Updates}: Sum the updates over rounds and apply the gradient variance bound to get the regret inequality.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_ogd_regret}.
+
+\begin{sourceblock}{Theorem 4.15 - Classification Strategic Regret Guarantee}
+By combining the selection and weights regret, we derive the overall expected strategic regret.
+\begin{theorem}[Classification Strategic Regret Guarantee]
+\label{thm:classification_regret_bound}
+By choosing the learning rate $\eta = \frac{D}{G}\sqrt{\frac{\gamma}{K T}}$ and the exploration rate $\gamma = \min\left\{ 1, \, \left(\frac{K \ln K}{T}\right)^{1/3} \right\}$, the expected strategic surrogate regret of Algorithm~\ref{alg:online_classification_main_text} satisfies:
+\begin{equation}
+    \label{eq:classification_regret_bound}
+    \E\left[ \sum_{t=1}^T \tilde{\ell}_t(i_t, \Theta_{t, i_t}) \right] - \min_{i, \Theta} \sum_{t=1}^T \tilde{\ell}_t(i, \Theta) \le \cO\left( B T^{2/3} (K \ln K)^{1/3} + D G T^{2/3} K^{1/3} \right) = \tilde{\cO}(T^{2/3}).
+\end{equation}
+\end{theorem}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Regret Summation}: Sum the selection regret from Lemma 4.13 and the continuous parameter regret from Lemma 4.14.
+\item \textbf{Parameter Optimization}: Minimize the joint bound over $\eta$ and $\gamma$ by balancing the $T^{2/3}$ terms to get the optimal regret rate.
+\end{guideblock}
+The proof is postponed to Section~\ref{app:proof_classification_regret_bound}.
+
+\begin{sourceblock}{Remark 4 - Dimension Independence}
+\begin{remark}
+This result shows that online multiclass classification is learnable under strategic disclosure at a sublinear rate of $\tilde{\cO}(T^{2/3})$. Unlike the regression setting where the one-point bandit feedback costs a factor of $d$ (dimension), the classification bandit setting restricts exploration to the $K$ discrete default options, yielding a dimension-independent regret rate.
+\end{remark}
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Conclusion}{What is the significance of the classification regret bound compared to regression?}
+\faqanswers
+\faqans{Conclusion}{Achieves dimension-independent regret $\tilde{\cO}(T^{2/3})$ because bandit exploration is confined to $K$ discrete arms rather than a high-dimensional continuous space.}
+\end{faqblock}

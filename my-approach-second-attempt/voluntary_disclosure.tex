@@ -1,0 +1,118 @@
+%%
+%% Clean second-attempt ACM LaTeX project.
+%%
+\documentclass[acmsmall]{acmart}
+
+%% Packages
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage{listings}
+
+%% Configure figures path
+\graphicspath{{figures/}}
+
+%% Journal & copyright settings
+\setcopyright{acmcopyright}
+\copyrightyear{2026}
+\acmYear{2026}
+\acmDOI{}
+\acmJournal{TIST}
+\acmVolume{1}
+\acmNumber{1}
+\acmArticle{1}
+\acmMonth{1}
+
+%% Mathematical notation shortcuts
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+%% Theorem-like environments
+\newtheorem{remark}{Remark}
+\newtheorem{assumption}{Assumption}
+
+%% Custom macros for Strategic Feature Withholding
+\newcommand{\bV}{b_{\mathrm{V}}}
+\newcommand{\bS}{b_{\mathrm{S}}}
+\newcommand{\RV}{R_{\mathrm{V}}}
+\newcommand{\RS}{R_{\mathrm{S}}}
+\newcommand{\bhatV}{\hat{b}_{\mathrm{V}}}
+\newcommand{\bhatS}{\hat{b}_{\mathrm{S}}}
+\newcommand{\RhatV}{\hat{R}_{\mathrm{V}}}
+\newcommand{\RhatS}{\hat{R}_{\mathrm{S}}}
+\newcommand{\ip}[2]{\langle #1, #2 \rangle}
+\newcommand{\phiSurr}{\phi_{\mathrm{surr}}}
+\newcommand{\PiW}{\Pi_{\mathcal{W}}}
+\newcommand{\I}[1]{\mathbf{1}\{#1\}}
+\newcommand{\Ept}[1]{\mathbb{E}_{#1}}
+\newcommand{\cO}{\mathcal{O}}
+\newcommand{\cK}{\mathcal{K}}
+\newcommand{\ThetaS}{\Theta_{\mathrm{S}}}
+
+\begin{document}
+
+\title[My Approach: Second Attempt]{My Approach: Second Attempt}
+
+\author{Manish Kumar Singh}
+\email{corresponding.author@email.com}
+\affiliation{%
+  \institution{Indian Institute of Technology Bombay}
+  \department{Centre for Systems and Control}
+  \city{Mumbai}
+  \state{Maharashtra}
+  \country{India}
+}
+
+\author{Ankur A. Kulkarni}
+\email{second.author@email.com}
+\affiliation{%
+  \institution{Indian Institute of Technology Bombay}
+  \department{Centre for Systems and Control}
+  \city{Mumbai}
+  \state{Maharashtra}
+  \country{India}
+}
+
+\author{Kriti Mahajan}
+\email{third.author@email.com}
+\affiliation{%
+  \institution{Amazon India}
+  \city{Bangalore}
+  \state{Karnataka}
+  \country{India}
+}
+
+\begin{abstract}
+Write the abstract for the second attempt here.
+\end{abstract}
+
+\keywords{Strategic Machine Learning, Voluntary Disclosure, Stackelberg Games, Sample Complexity, Online Regret, Surrogate Loss}
+
+\maketitle
+
+\input{sections/1_introduction.tex}
+\input{sections/2_formulation.tex}
+\input{sections/3_regression.tex}
+\input{sections/4_classification.tex}
+\input{sections/5_experiments.tex}
+\input{sections/6_conclusion.tex}
+\input{sections/7_postponed_proofs.tex}
+
+\begin{acks}
+Write acknowledgments here, or remove this environment if not needed.
+\end{acks}
+
+\section*{Funding Statement}
+Write the funding statement here.
+
+\section*{Competing Interests}
+Write the competing interests statement here.
+
+%% Uncomment these lines after adding citations.
+% \bibliographystyle{ACM-Reference-Format}
+% \bibliography{references_library/references}
+
+\end{document}

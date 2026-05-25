@@ -1,0 +1,54 @@
+\section{Problem Formulation}
+\label{sec:formulation}
+
+\begin{sourceblock}{Paragraph 1 - Setting and Players}
+We model the voluntary feature disclosure setting as a sequential Stackelberg game between two players: a receiver (the decision-maker) who acts as the leader, and a population of senders (data providers) who act as the followers. Let $\mathcal{P}$ denote a joint probability distribution over the triplet $(U, X, Y)$ representing a random sender from the population, where $X \in \mathcal{X} \subseteq \R^d$ is the sender's private, high-dimensional feature vector, $Y \in \mathcal{Y}$ is the true ground-truth label that the receiver aims to predict, and $U \in \mathcal{U}$ represents the sender's private target value or preference for the receiver's prediction. The prediction space is denoted by $\mathcal{Y}$, which we specialize to the continuous space $\mathcal{Y} = \R$ for regression in Section~\ref{sec:regression} and the discrete multi-class space $\mathcal{Y} = \{1, \dots, K\}$ for classification in Section~\ref{sec:classification}.
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Context}{What setting and players are modeled in this Stackelberg game?}
+\faqitem{Process}{What do the variables $(U, X, Y)$ represent?}
+\faqitem{Process}{How is the prediction space specialized for regression and classification?}
+\faqanswers
+\faqans{Context}{Voluntary feature disclosure; receiver (leader) and senders (followers).}
+\faqans{Process}{$U$ is private preference; $X$ is private feature vector; $Y$ is true label.}
+\faqans{Process}{Regression: $\mathcal{Y} = \R$; Classification: $\mathcal{Y} = \{1, \dots, K\}$.}
+\end{faqblock}
+
+\begin{sourceblock}{Paragraph 2 - Game Sequence and Channel}
+The game unfolds sequentially and is characterized by the following mathematical operations. The receiver first commits to a predictive policy $H = (h, d)$, wherein $h \in \mathcal{H} \subset \{f: \mathcal{X} \to \mathcal{Y}\}$ acts as the feature-based predictor and $d \in \mathcal{Y}$ serves as the default prediction for withheld features. A sender, with private characteristics $(U, X, Y) \sim \mathcal{P}$, then observes $H$ and determines their disclosure strategy mapping $D: \mathcal{U} \times \mathcal{X} \to \{0, 1\}$. To capture channel imperfections, the transmission passes through a memoryless erasure channel denoted by a known erasure probability $q \in [0, 1]$. The final revelation outcome is governed by the random variable $A = D(U, X) \cdot (1 - \epsilon)$, where $\epsilon \sim \text{Bernoulli}(q)$ represents an independent erasure event ($\epsilon = 1$ if erased, $\epsilon = 0$ if successfully transmitted). The receiver subsequently observes the incoming message $M \in \mathcal{X} \cup \{\emptyset\}$, yielding the prediction $\hat{Y} = H(M) = A h(X) + (1-A)d$.
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Process}{What constitutes the receiver's predictive policy $H$?}
+\faqitem{Process}{How is the channel erasure modeled?}
+\faqitem{Consequence}{How is the final prediction $\hat{Y}$ computed based on the revelation outcome?}
+\faqanswers
+\faqans{Process}{Pair $(h, d)$; $h$ is predictor, $d$ is default prediction.}
+\faqans{Process}{Memoryless erasure channel with probability $q$; random erasure event $\epsilon \sim \text{Bernoulli}(q)$.}
+\faqans{Consequence}{$\hat{Y} = A h(X) + (1-A)d$, where $A = D(U, X)(1-\epsilon)$ is the revelation indicator.}
+\end{faqblock}
+
+\begin{sourceblock}{Paragraph 3 - Player Objectives and Equilibrium}
+Both players behave rationally to minimize their respective expected losses. A utility-maximizing sender selects their disclosure decision to minimize their expected loss over the channel erasure, defined as $D^*(H; U, X) \in \argmin_{D \in \{0, 1\}} \E_{\epsilon} \left[ \ell_S\left( D(1-\epsilon)h(X) + (1 - D(1-\epsilon))d, \, U \right) \right]$, breaking ties in favor of withholding ($D = 0$). Senders evaluate the prediction $\hat{Y}$ relative to their private preference $U$ using a loss function $\ell_S: \mathcal{Y} \times \mathcal{U} \to \R_+$. Conversely, the receiver evaluates the prediction relative to the true label $Y$ using a loss function $\ell_R: \mathcal{Y} \times \mathcal{Y} \to \R_+$. The senders' best responses induce a joint distribution on the observed message $M$ and label $Y$. The receiver's objective is to minimize their strategic risk $R_S(h, d; q)$, defined as the expected receiver loss under the sender's best-response strategy:
+\begin{equation}
+    \label{eq:strategic_risk}
+    R_S(h, d; q) = \E_{(U, X, Y) \sim \mathcal{P}} \left[ \E_{\epsilon} \left[ \ell_R\left( A h(X) + (1-A)d, \, Y \right) \right] \right],
+\end{equation}
+where the revelation outcome is determined by $A = D^*(H; U, X) \cdot (1 - \epsilon)$. The Stackelberg equilibrium of this game is defined by the receiver's optimal policy $(h^*, d^*)$ that minimizes this strategic risk:
+\begin{equation}
+    \label{eq:stackelberg_opt}
+    (h^*, d^*) \in \argmin_{h \in \mathcal{H}, \, d \in \mathcal{Y}} R_S(h, d; q),
+\end{equation}
+with the optimal strategic risk denoted by $R_S^*(q) = R_S(h^*, d^*; q)$. The environment of the game is fully characterized by the tuple $E = (\mathcal{P}, \mathcal{H}, \mathcal{Y}, q, \ell_S, \ell_R)$.
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Process}{How does the sender choose the optimal disclosure strategy $D^*$?}
+\faqitem{Process}{What loss functions evaluate the predictions for the sender and the receiver?}
+\faqitem{Conclusion}{How are the strategic risk $R_S$ and the Stackelberg equilibrium defined?}
+\faqanswers
+\faqans{Process}{Minimizes expected loss over erasure $\E_{\epsilon}[\ell_S(\hat{Y}, U)]$; ties broken in favor of withholding.}
+\faqans{Process}{Sender loss $\ell_S(\hat{Y}, U)$; Receiver loss $\ell_R(\hat{Y}, Y)$.}
+\faqans{Conclusion}{Risk is $R_S(h, d; q) = \E[\ell_R(\hat{Y}, Y)]$; equilibrium $(h^*, d^*)$ minimizes $R_S(h, d; q)$.}
+\end{faqblock}

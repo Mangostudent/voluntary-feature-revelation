@@ -1,0 +1,78 @@
+\section{Conclusion and Future Work}
+\label{sec:conclusion}
+
+\begin{sourceblock}{Paragraph 1 - Conclusion Summary}
+In this paper, we have presented a unified framework for machine learning under strategic information disclosure, specifically focusing on the problem of strategic feature withholding. By modeling the interaction as a Stackelberg game between a data provider (the sender) and a decision-maker (the receiver) connected through a noisy erasure channel, we analyzed the optimal strategies and learning dynamics across two fundamental prediction spaces—continuous labels (regression) and discrete labels (multiclass classification)—and three sequential regimes: the decision-theoretic game, offline batch learning, and online sequential learning.
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Context}{What framework is presented in this paper?}
+\faqitem{Process}{What prediction spaces and sequential regimes of interaction are examined?}
+\faqanswers
+\faqans{Context}{A unified framework for machine learning under strategic information disclosure, specifically voluntary feature withholding.}
+\faqans{Process}{Continuous spaces (regression) and discrete spaces (classification) across decision-theoretic, offline batch, and online sequential regimes.}
+\end{faqblock}
+
+\begin{sourceblock}{Paragraph 2 - Key Results Recap}
+For the regression setting, we established necessary and sufficient conditions for voluntary disclosure to benefit the receiver, derived uniform generalization bounds of $\mathcal{O}(d^3/\sqrt{n})$ for the offline empirical risk minimizer, and proved sublinear online regret bounds of $\mathcal{O}(d\sqrt{T})$ under bandit feedback via a spherical one-point gradient estimator. For the multiclass classification setting, we proved that the optimal strategic risk forms a concave piecewise-linear envelope over the noise space, derived excess risk bounds of $\mathcal{O}(\sqrt{Kd\log n / n})$ via the Natarajan dimension, and designed a decoupled EXP3+OGD algorithm achieving $\tilde{\mathcal{O}}(T^{2/3})$ expected regret under bandit feedback. All theoretical results were validated through comprehensive GMM-based simulations, confirming the strategic advantage boundaries, piecewise-linear risk structures, and convergence rates.
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Consequence}{What theoretical results were derived for the strategic regression setting?}
+\faqitem{Consequence}{What theoretical results were derived for the multiclass classification setting?}
+\faqanswers
+\faqans{Consequence}{Sufficient/necessary conditions for positive advantage, $\mathcal{O}(d^3/\sqrt{n})$ generalization bound, and $\mathcal{O}(d\sqrt{T})$ online regret under bandit feedback.}
+\faqans{Consequence}{Concave piecewise-linear risk envelope over noise, $\mathcal{O}(\sqrt{Kd\log n/n})$ excess risk, and $\tilde{\mathcal{O}}(T^{2/3})$ expected regret.}
+\end{faqblock}
+
+\subsection{Limitations}
+\label{sec:limitations}
+
+\begin{sourceblock}{Paragraph 3 - Current Limitations}
+While our framework yields a rich set of theoretical guarantees, several important limitations remain:
+
+\begin{itemize}
+    \item \textbf{All-or-Nothing Disclosure.} Throughout this work, we assume senders can only make a binary choice: reveal the \emph{entire} feature vector $X$ or withhold it completely ($\emptyset$). This is a significant modeling restriction. In practice, agents may selectively disclose \emph{subsets} of features, leading to a combinatorially larger action space that our current analysis does not handle.
+    
+    \item \textbf{Gap Between Necessary and Sufficient Conditions.} For regression, our sufficient condition (Theorem~\ref{thm:sufficient_condition}) and necessary condition (Theorem~\ref{thm:necessary_condition}) do not meet: there exists a region of the parameter space where the true strategic advantage is positive but our sufficient condition does not confirm it. Tightening this gap remains an open problem.
+    
+    \item \textbf{Local Optimality in Online Regression.} Because the strategic risk is non-convex in the receiver's parameters $b$, our online gradient-based algorithms only converge to a \emph{local} minimizer within a convex basin, not a global optimum. This local regret guarantee may be insufficient in environments with multiple local minima.
+    
+    \item \textbf{Known Noise Parameter $q$.} Our offline learning algorithms assume the channel erasure probability $q$ is known to the receiver. In practice, $q$ must be estimated from data, adding an additional layer of statistical complexity not captured by our current bounds.
+    
+    \item \textbf{Nondegeneracy Assumption.} For the classification offline bounds, we require Assumption~\ref{ass:nondegenerate_mass}: each default class receives a nontrivial fraction $\gamma > 0$ of revealed samples. When the prior is highly concentrated on a single class, this assumption fails and our analysis breaks down.
+    
+    \item \textbf{Slower Online Regret for Classification.} The $\tilde{\mathcal{O}}(T^{2/3})$ regret for classification (compared to $\mathcal{O}(\sqrt{T})$ for regression) reflects the inherent cost of the discrete explore-exploit trade-off in EXP3. Bridging this gap using improved bandit algorithms is an open direction.
+\end{itemize}
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Context}{What are the major limitations of the current strategic learning framework?}
+\faqanswers
+\faqans{Context}{All-or-nothing disclosure, non-tightness of necessary/sufficient conditions, local regret convergence for regression, known erasure probability $q$, nondegeneracy classification requirements, and slower classification online regret ($\tilde{\mathcal{O}}(T^{2/3})$).}
+\end{faqblock}
+
+\subsection{Future Directions}
+\label{sec:future}
+
+\begin{sourceblock}{Paragraph 4 - Future Work}
+There are several promising avenues for extending this work:
+
+\begin{itemize}
+    \item \textbf{Selective Feature Withholding.} Relaxing the all-or-nothing model to allow agents to reveal or withhold arbitrary subsets of features. This would introduce combinatorial challenges to the receiver's model selection and requires new tools from set-function optimization.
+    
+    \item \textbf{Non-linear and Neural Representations.} Generalizing our generalization bounds and online regret results to non-linear hypothesis classes (e.g., kernel methods, neural networks) using neural tangent kernels or Rademacher complexities of deep models.
+    
+    \item \textbf{Multi-Sender Environments.} Extending the framework to settings with multiple heterogeneous senders with potentially competing or cooperative disclosure strategies. This connects to mechanism design and information aggregation theory.
+    
+    \item \textbf{Non-stationary and Adversarial Environments.} Analyzing online learning under non-stationary distributions or adaptive adversaries, where the joint distribution $\mathcal{P}$ or the channel noise $q$ drifts over time, requiring tracking regret bounds.
+    
+    \item \textbf{Partial Feature Observability.} Studying settings where the receiver can \emph{query} a subset of features at a cost, creating an active learning variant of the strategic disclosure game.
+\end{itemize}
+\end{sourceblock}
+
+\begin{faqblock}
+\faqitem{Conclusion}{What future directions are identified to build upon this research?}
+\faqanswers
+\faqans{Conclusion}{Selective subset withholding, non-linear/neural extensions, multi-sender games, non-stationary environments, and active learning with query costs.}
+\end{faqblock}

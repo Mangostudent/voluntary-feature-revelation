@@ -1,0 +1,1031 @@
+\section{Postponed Proofs}
+\label{sec:postponed_proofs}
+
+This section collects the complete formal proofs for all theorems and lemmas referenced in the main text, organized by result domain (regression and classification). Each proof is presented with a clearly labeled environment indicating the specific result being proven, allowing readers to easily locate and reference individual proofs.
+
+\subsection{Proofs for Regression (Section 3)}
+\label{subsec:proofs_regression}
+
+The following proofs establish the game-theoretic foundations, offline generalization bounds, and online regret guarantees for the continuous regression setting.
+
+\begin{sourceblock}{Proof of Lemma 3.2 - Vanilla Risk Decomposition}
+\subsubsection*{Proof of Lemma~\ref{lem:vanilla_risk}: Vanilla Risk Decomposition}
+\phantomsection
+\label{app:proof_vanilla_risk}
+\begin{proof}[Vanilla Risk Decomposition]
+Under mandatory disclosure, the sender's action is fixed to always reveal ($D \equiv 1$). The feature vector $X$ is successfully transmitted with probability $1 - q$ and is erased by the channel with probability $q$. If erasure occurs, the receiver predicts the default value $0$ and suffers quadratic loss $Y^2$. If the transmission succeeds, the receiver predicts $b^\top X$ and suffers $(Y - b^\top X)^2$. By definition, the vanilla risk is:
+\begin{equation}
+    \RV(b, q) = q\E[Y^2] + (1 - q)\E[(Y - b^\top X)^2].
+\end{equation}
+Since $\E[Y] = 0$, we have $\E[Y^2] = \mathrm{Var}(Y)$. 
+
+To decompose the second term, we add and subtract the OLS predictor $\bV^\top X$:
+\begin{equation}
+    \E[(Y - b^\top X)^2] = \E\left[ \left( (Y - \bV^\top X) + (\bV - b)^\top X \right)^2 \right].
+\end{equation}
+Expanding the square yields:
+\begin{equation}
+    \E[(Y - b^\top X)^2] = \E[(Y - \bV^\top X)^2] + \E[((\bV - b)^\top X)^2] + 2\E[(Y - \bV^\top X)(\bV - b)^\top X].
+\end{equation}
+By the orthogonality principle of linear least squares, the error $Y - \bV^\top X$ is orthogonal to the feature space $\mathcal{X}$, meaning $\E[(Y - \bV^\top X)X] = 0$. Consequently, the cross-product term is zero:
+\begin{equation}
+    2(\bV - b)^\top \E[(Y - \bV^\top X)X] = 0.
+\end{equation}
+Since $\E[Y] = 0$ and $\E[\bV^\top X] = \bV^\top \E[X] = 0$, we have:
+\begin{equation}
+    \E[(Y - \bV^\top X)^2] = \E[Y^2] - \E[(\bV^\top X)^2] = \mathrm{Var}(Y) - \mathrm{Var}(\bV^\top X),
+\end{equation}
+and
+\begin{equation}
+    \E[((\bV - b)^\top X)^2] = \mathrm{Var}((\bV - b)^\top X) = \mathrm{Var}((b - \bV)^\top X).
+\end{equation}
+Substituting these terms back into the risk formula gives:
+\begin{align}
+    \RV(b, q) &= q\mathrm{Var}(Y) + (1 - q)\left( \mathrm{Var}(Y) - \mathrm{Var}(\bV^\top X) + \mathrm{Var}((b - \bV)^\top X) \right) \nonumber \\
+    &= \mathrm{Var}(Y) - (1 - q)\mathrm{Var}(\bV^\top X) + (1 - q)\mathrm{Var}((b - \bV)^\top X),
+\end{align}
+which matches~\eqref{eq:vanilla_risk_decomp}. 
+
+The vanilla risk is minimized when the non-negative term $\mathrm{Var}((b - \bV)^\top X)$ is zero. Assuming $\mathrm{Var}(X) \succ 0$, this occurs uniquely at $b = \bV$, yielding the optimal vanilla risk:
+\begin{equation}
+    \RV^*(q) = \mathrm{Var}(Y) - (1 - q)\mathrm{Var}(\bV^\top X).
+\end{equation}
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Initial Risk}: Express the vanilla risk as a weighted sum of risks under erasure and successful transmission.
+\item \textbf{OLS Residuals}: Decompose the transmission error by adding and subtracting the OLS optimal projection $\bV^\top X$.
+\item \textbf{Orthogonality Principle}: Recall that linear regression residual error $(Y - \bV^\top X)$ is orthogonal to features $X$, forcing the cross terms to zero.
+\item \textbf{Minimization}: Set the derivative with respect to $b$ to zero, showing that OLS slope $b = \bV$ minimizes the risk.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Lemma 3.3 - Sender Best Response}
+\subsubsection*{Proof of Lemma~\ref{lem:best_response}: Sender Best Response}
+\phantomsection
+\label{app:proof_best_response}
+\begin{proof}[Sender Best Response]
+Consider a sender with preference realization $u$ and features $x$ under a committed receiver predictor parameter $b$. 
+If the sender chooses to withhold ($D = 0$), the receiver receives $M = \emptyset$, predicts $0$, and the sender suffers loss:
+\begin{equation}
+    \ell_S(0, u) = u^2.
+\end{equation}
+If the sender chooses to disclose ($D = 1$), the feature is successfully transmitted with probability $1 - q$ (resulting in prediction $b^\top x$ and loss $(b^\top x - u)^2$) and is erased with probability $q$ (resulting in prediction $0$ and loss $u^2$). The sender's expected loss from disclosing is:
+\begin{equation}
+    \E_{\epsilon}[\ell_S(\hat{Y}, u)] = (1 - q)(b^\top x - u)^2 + q u^2.
+\end{equation}
+The sender prefers disclosure if and only if:
+\begin{equation}
+    u^2 > (1 - q)(b^\top x - u)^2 + q u^2.
+\end{equation}
+Since $q \in (0, 1)$, we divide by the positive constant $1 - q > 0$ to get:
+\begin{equation}
+    u^2 > (u - b^\top x)^2.
+\end{equation}
+Expanding the right-hand side gives:
+\begin{equation}
+    u^2 > u^2 - 2u b^\top x + (b^\top x)^2 \iff (2u - b^\top x)b^\top x > 0.
+\end{equation}
+Recalling the definition of $F_b(U, X)$ in~\eqref{eq:Fb_def}, this simplifies to $F_b(u, x) > 0$. We resolve ties by withholding, which completes the proof.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Loss Comparison}: Compare the utility-maximizing choices of disclosure ($D=1$) vs. withholding ($D=0$).
+\item \textbf{Algebraic Simplification}: Simplify the inequality $(1-q)(b^\top x - u)^2 + q u^2 < u^2$ by grouping the $u^2$ terms.
+\item \textbf{Threshold Statistic}: Expand the squared term $(u - b^\top x)^2$ and subtract $u^2$ from both sides to reveal the statistic $F_b(u, x) > 0$.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Lemma 3.4 - Strategic Risk Formula}
+\subsubsection*{Proof of Lemma~\ref{lem:strategic_risk_formula}: Strategic Risk Formula}
+\phantomsection
+\label{app:proof_strategic_risk}
+\begin{proof}[Strategic Risk Formula]
+Under voluntary disclosure, Lemma~\ref{lem:best_response} dictates that the sender reveals features if and only if $F_b(U, X) > 0$. 
+Let $I_t = \I{F_b(U, X) > 0}$.
+If $I_t = 0$, the sender withholds features, and the receiver predicts $0$, suffering loss $Y^2$. 
+If $I_t = 1$, the sender attempts revelation. With probability $q$, the channel erases the features, leading to prediction $0$ and loss $Y^2$. With probability $1 - q$, features are successfully received, resulting in prediction $b^\top X$ and loss $(Y - b^\top X)^2$. 
+
+The strategic risk is:
+\begin{equation}
+    \RS(b, q) = \E\left[ (1 - I_t) Y^2 + I_t \left( q Y^2 + (1 - q)(Y - b^\top X)^2 \right) \right].
+\end{equation}
+Grouping the terms containing $Y^2$ yields:
+\begin{align}
+    \RS(b, q) &= \E\left[ Y^2 - (1 - q)I_t Y^2 + (1 - q)I_t (Y - b^\top X)^2 \right] \nonumber \\
+    &= \E\left[ Y^2 \right] - (1 - q) \E\left[ I_t \left( Y^2 - (Y - b^\top X)^2 \right) \right].
+\end{align}
+Since $\E[Y] = 0$, we have $\E[Y^2] = \mathrm{Var}(Y)$. Expanding the term $Y^2 - (Y - b^\top X)^2$ gives:
+\begin{equation}
+    Y^2 - (Y^2 - 2Y b^\top X + (b^\top X)^2) = (2Y - b^\top X)b^\top X = G_b(X, Y),
+\end{equation}
+where $G_b(X, Y)$ is defined as in~\eqref{eq:Gb_def}. Thus, the expression reduces to:
+\begin{equation}
+    \RS(b, q) = \mathrm{Var}(Y) - (1 - q)\E\left[ G_b(X, Y) \I{F_b(U, X) > 0} \right],
+\end{equation}
+which is the stated equation~\eqref{eq:strategic_risk_formula}.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Conditioning}: Write the strategic risk by conditioning on the indicator variable $I_t = \I{F_b > 0}$ and the erasure event.
+\item \textbf{Loss Reduction}: Identify the difference in loss $Y^2 - (Y - b^\top X)^2$ as the regression gain $G_b(X, Y)$.
+\item \textbf{Integration}: Substitute the indicators to get the expectation of $G_b$ over the revelation subpopulation.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Theorem 3.5 - Sufficient Condition for Strategic Advantage}
+\subsubsection*{Proof of Theorem~\ref{thm:sufficient_condition}: Sufficient Condition for Strategic Advantage}
+\phantomsection
+\label{app:proof_sufficient_condition}
+\begin{proof}[Sufficient Condition for Strategic Advantage]
+Let $\Delta(b, q) = \RV^*(q) - \RS(b, q)$. By definition, if there exists $b \in \R^d$ such that $\Delta(b, q) > 0$, then $\Delta(E) > 0$. Using the risk equations from Lemmas~\ref{lem:vanilla_risk} and~\ref{lem:strategic_risk_formula}, the risk difference is:
+\begin{equation}
+    \RS(b, q) - \RV^*(q) = (1 - q) \left[ \mathrm{Var}(\bV^\top X) - \E\left[ G_b(X, Y) \I{F_b(U, X) > 0} \right] \right].
+\end{equation}
+We rewrite the expectation as:
+\begin{equation}
+    \E\left[ G_b(X, Y) \I{F_b(U, X) > 0} \right] = \E[G_b(X, Y)] - \E\left[ G_b(X, Y) \I{F_b(U, X) \le 0} \right].
+\end{equation}
+Note that $\E[G_b(X, Y)] = \E[(2Y - b^\top X)b^\top X] = 2b^\top \E[XY] - b^\top \E[XX^\top]b = 2b^\top \mathrm{Var}(X)\bV - \mathrm{Var}(b^\top X)$. We can rewrite this using the algebraic variance identity:
+\begin{equation}
+    \mathrm{Var}((b - \bV)^\top X) = \mathrm{Var}(b^\top X) - 2b^\top \mathrm{Var}(X)\bV + \mathrm{Var}(\bV^\top X),
+\end{equation}
+which implies:
+\begin{equation}
+    \E[G_b(X, Y)] = \mathrm{Var}(\bV^\top X) - \mathrm{Var}((b - \bV)^\top X).
+\end{equation}
+Thus, the risk difference is:
+\begin{equation}
+    \RS(b, q) - \RV^*(q) = (1 - q) \left[ \mathrm{Var}((b - \bV)^\top X) + \E\left[ G_b(X, Y) \I{F_b(U, X) \le 0} \right] \right].
+\end{equation}
+For this difference to be strictly negative (signifying positive strategic advantage), we require the bracketed term to be negative. 
+
+We decompose the expectation term based on the sign of $G_b$:
+\begin{equation}
+    \E\left[ G_b \I{F_b \le 0} \right] = \E\left[ G_b \I{G_b \le 0} \right] + \E\left[ G_b \left( \I{F_b \le 0} - \I{G_b \le 0} \right) \right].
+\end{equation}
+For the first term, we write:
+\begin{equation}
+    \E\left[ G_b \I{G_b \le 0} \right] = \frac{\E[G_b] - \E[|G_b|]}{2} = \frac{\mathrm{Var}(\bV^\top X) - \mathrm{Var}((b - \bV)^\top X) - \E[|G_b|]}{2}.
+\end{equation}
+For the second term, the integrand is non-zero only when $F_b$ and $G_b$ have opposite signs. On this mismatch event, we have $|G_b(X, Y)| \le |G_b(X, Y) - F_b(U, X)|$. 
+Using the definitions in~\eqref{eq:Fb_def} and~\eqref{eq:Gb_def}, we have:
+\begin{equation}
+    G_b(X, Y) - F_b(U, X) = 2(Y - U)b^\top X.
+\end{equation}
+Therefore,
+\begin{equation}
+    \E\left[ G_b \left( \I{F_b \le 0} - \I{G_b \le 0} \right) \right] \le \E\left[ |G_b| \I{\mathrm{sign}(F_b) \ne \mathrm{sign}(G_b)} \right] \le 2\E\left[ |Y - U||b^\top X| \right].
+\end{equation}
+Applying the Cauchy-Schwarz inequality gives:
+\begin{equation}
+    2\E\left[ |Y - U||b^\top X| \right] \le 2 \|U - Y\|_2 \sqrt{\mathrm{Var}(b^\top X)}.
+\end{equation}
+Combining these components, we get:
+\begin{equation}
+    \E\left[ G_b \I{F_b \le 0} \right] \le \frac{\mathrm{Var}(\bV^\top X) - \mathrm{Var}((b - \bV)^\top X) - \E[|G_b|]}{2} + 2 \|U - Y\|_2 \sqrt{\mathrm{Var}(b^\top X)}.
+\end{equation}
+Substitute this inequality back into the risk difference:
+\begin{equation}
+    \RS(b, q) - \RV^*(q) \le (1 - q) \left[ \frac{\mathrm{Var}(\bV^\top X) + \mathrm{Var}((b - \bV)^\top X) - \E[|G_b|]}{2} + 2\|U - Y\|_2 \sqrt{\mathrm{Var}(b^\top X)} \right].
+\end{equation}
+To guarantee that $\RS(b, q) - \RV^*(q) < 0$, it is sufficient for the term in the brackets to be strictly negative:
+\begin{equation}
+    2\|U - Y\|_2 \sqrt{\mathrm{Var}(b^\top X)} < \frac{\E[|G_b|] - \mathrm{Var}(\bV^\top X) - \mathrm{Var}((b - \bV)^\top X)}{2}.
+\end{equation}
+Rearranging this inequality yields~\eqref{eq:sufficient_condition}.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Risk Difference Decomposing}: Relate the voluntary and OLS risk formulas. Rewrite the expectation over the subset $\{F_b > 0\}$ as the total expectation minus the expectation over the subset $\{F_b \le 0\}$.
+\item \textbf{Mismatch Event Bound}: Decompose the withholding expectation based on sign mismatch between $F_b$ and $G_b$. Show that the difference $G_b - F_b$ equals $2(Y-U)b^\top X$.
+\item \textbf{Cauchy-Schwarz application}: Apply Cauchy-Schwarz to separate the alignment error $\|U - Y\|_2$ from the variance term.
+\item \textbf{Deriving the Bound}: Set the upper bound of the risk difference to be strictly negative to find the sufficient condition.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Theorem 3.6 - Necessary Condition for Strategic Advantage}
+\subsubsection*{Proof of Theorem~\ref{thm:necessary_condition}: Necessary Condition for Strategic Advantage}
+\phantomsection
+\label{app:proof_necessary_condition}
+\begin{proof}[Necessary Condition for Strategic Advantage]
+We analyze the risk difference under voluntary disclosure:
+\begin{equation}
+    \RS(b, q) - \RV^*(q) = (1 - q) \left[ \mathrm{Var}((b - \bV)^\top X) + \E\left[ G_b(X, Y) \I{F_b(U, X) \le 0} \right] \right].
+\end{equation}
+Pointwise, for any realizations, we have:
+\begin{equation}
+    G_b \I{F_b \le 0} \ge G_b \I{G_b \le 0}.
+\end{equation}
+This is established by cases:
+\begin{itemize}
+    \item If $G_b \le 0$, then the right-hand side is $G_b$. Since $G_b \I{F_b \le 0}$ is either $G_b$ (if $F_b \le 0$) or $0$ (if $F_b > 0$), and $0 \ge G_b$, the inequality holds.
+    \item If $G_b > 0$, the right-hand side is $0$. The left-hand side is either $G_b > 0$ or $0$, which is always non-negative, so the inequality holds.
+\end{itemize}
+Taking expectations on both sides yields:
+\begin{equation}
+    \E\left[ G_b \I{F_b \le 0} \right] \ge \E\left[ G_b \I{G_b \le 0} \right] = \frac{\mathrm{Var}(\bV^\top X) - \mathrm{Var}((b - \bV)^\top X) - \E[|G_b|]}{2}.
+\end{equation}
+Substitute this lower bound into the risk difference:
+\begin{align}
+    \RS(b, q) &\ge \RV^*(q) + \frac{1 - q}{2} \left[ \mathrm{Var}(\bV^\top X) + \mathrm{Var}((b - \bV)^\top X) - \E[|G_b|] \right].
+\end{align}
+Now, suppose that for all $b \in \R^d$, the necessary condition~\eqref{eq:necessary_condition} fails, meaning:
+\begin{equation}
+    \E[|G_b(X, Y)|] - \mathrm{Var}(\bV^\top X) - \mathrm{Var}((b - \bV)^\top X) \le 0 \quad \forall b \in \R^d.
+\end{equation}
+This implies that the term inside the brackets is always non-negative:
+\begin{equation}
+    \mathrm{Var}(\bV^\top X) + \mathrm{Var}((b - \bV)^\top X) - \E[|G_b(X, Y)|] \ge 0 \quad \forall b \in \R^d.
+\end{equation}
+Since $1 - q > 0$, this guarantees $\RS(b, q) - \RV^*(q) \ge 0$ for all $b$, which means $\Delta(E) \le 0$. By contrapositive, if $\Delta(E) > 0$, there must exist some $b \in \R^d$ that satisfies the necessary condition~\eqref{eq:necessary_condition}.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Pointwise Inequality}: Prove the pointwise relation $G_b \I{F_b \le 0} \ge G_b \I{G_b \le 0}$ by checking cases where $G_b \le 0$ and $G_b > 0$.
+\item \textbf{Taking Expectation}: Take expectations and write $\E[G_b \I{G_b \le 0}] = \frac{\E[G_b] - \E[|G_b|]}{2}$.
+\item \textbf{Contrapositive Logic}: Assume the necessary condition fails for all $b$, and show that this implies strategic risk is always greater than or equal to OLS risk, meaning strategic advantage is non-positive.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Lemma 3.8 - Uniform Vanilla Generalization}
+\subsubsection*{Proof of Lemma~\ref{lem:vanilla_generalization}: Uniform Vanilla Generalization}
+\phantomsection
+\label{app:proof_vanilla_generalization}
+\begin{proof}[Uniform Vanilla Generalization]
+Let $L(b) = \E[(Y - b^\top X)^2]$ and $\hat{L}(b) = \frac{1}{n}\sum_{i=1}^n (y_i - b^\top x_i)^2$. The difference between the true and empirical vanilla risks is:
+\begin{align}
+    \RV(b, q) - \RhatV(b, q) &= q\left( \mathrm{Var}(Y) - \frac{1}{n}\sum_{i=1}^n y_i^2 \right) + (1 - q)(L(b) - \hat{L}(b)).
+\end{align}
+Using the triangle inequality, we bound this difference uniformly:
+\begin{equation}
+    \sup_{b \in \mathcal{W}} |\RV(b, q) - \RhatV(b, q)| \le \left| \mathrm{Var}(Y) - \frac{1}{n}\sum_{i=1}^n y_i^2 \right| + \sup_{b \in \mathcal{W}} |L(b) - \hat{L}(b)|.
+\end{equation}
+We allocate a failure probability of $\delta/2$ to each of these two terms using a union bound.
+
+For the first term, since $Y \in [-C, C]$, the variable $Y^2$ lies in the interval $[0, C^2]$. Applying Hoeffding's concentration inequality yields:
+\begin{equation}
+    \Pr\left( \left| \mathrm{Var}(Y) - \frac{1}{n}\sum_{i=1}^n y_i^2 \right| > \epsilon_1 \right) \le 2\exp\left( - \frac{2n \epsilon_1^2}{C^4} \right).
+\end{equation}
+Setting the probability bound equal to $\delta/2$ and solving for $\epsilon_1$ gives:
+\begin{equation}
+    \left| \mathrm{Var}(Y) - \frac{1}{n}\sum_{i=1}^n y_i^2 \right| \le C^2 \sqrt{\frac{\log(4/\delta)}{2n}} = \cO\left( C^2 \sqrt{\frac{\log(1/\delta)}{n}} \right)
+\end{equation}
+with probability at least $1 - \delta/2$.
+
+For the second term, we apply the Rademacher generalization bound. Let $\mathcal{F} = \{(x, y) \mapsto (y - b^\top x)^2 : b \in \mathcal{W}\}$ be the loss function class. Under the boundedness assumptions, $y_i \in [-C, C]$ and $b^\top x_i \in [-dC^2, dC^2]$ (since $\|b\|_\infty \le C$ and $\|x_i\|_\infty \le C$). The argument of the quadratic loss is bounded by $C + dC^2$. The derivative of the loss function $\ell(z) = (y - z)^2$ with respect to $z = b^\top x$ is bounded by $2(C + dC^2) = \cO(dC^2)$. Thus, the loss function is $\cO(dC^2)$-Lipschitz.
+
+Let $\mathcal{H} = \{(x, y) \mapsto y - b^\top x : b \in \mathcal{W}\}$ be the linear function class. The Rademacher complexity of $\mathcal{H}$ satisfies $\hat{\mathcal{R}}(\mathcal{H}; S) = \cO\left( \frac{d C^2}{\sqrt{n}} \right)$. Using Talagrand's contraction lemma, the Rademacher complexity of the composed class $\mathcal{F} = \ell \circ \mathcal{H}$ is bounded by:
+\begin{equation}
+    \hat{\mathcal{R}}(\mathcal{F}; S) \le \cO(dC^2) \hat{\mathcal{R}}(\mathcal{H}; S) = \cO\left( \frac{d^2 C^4}{\sqrt{n}} \right).
+\end{equation}
+Applying the Rademacher generalization theorem, with probability at least $1 - \delta/2$, we have:
+\begin{equation}
+    \sup_{b \in \mathcal{W}} |L(b) - \hat{L}(b)| \le 2\hat{\mathcal{R}}(\mathcal{F}; S) + 4C^2 \sqrt{\frac{\log(4/\delta)}{2n}} = \cO\left( \frac{d^2 C^4}{\sqrt{n}} + C^2\sqrt{\frac{\log(1/\delta)}{n}} \right).
+\end{equation}
+Summing these two uniform bounds completes the proof.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Union Bound Splitting}: Split the uniform convergence error into target variance error and OLS linear risk error.
+\item \textbf{Concentration of Variance}: Bound the target variance term using Hoeffding's inequality for bounded variables in $[0, C^2]$.
+\item \textbf{Lipschitz Contraction}: Compute the Lipschitz constant of the quadratic loss function over the bounded domain.
+\item \textbf{Talagrand's Contraction}: Apply Talagrand's contraction lemma to bound the Rademacher complexity of the quadratic loss class by the complexity of linear predictors.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Lemma 3.9 - Uniform Strategic Generalization}
+\subsubsection*{Proof of Lemma~\ref{lem:strategic_generalization}: Uniform Strategic Generalization}
+\phantomsection
+\label{app:proof_strategic_generalization}
+\begin{proof}[Uniform Strategic Generalization]
+Let $h_b(u, x, y) = G_b(x, y)\I{F_b(u, x) > 0}$. The strategic risk and empirical risk are:
+\begin{equation}
+    \RS(b, q) = \mathrm{Var}(Y) - (1 - q)\E[h_b(U, X, Y)],
+\end{equation}
+\begin{equation}
+    \RhatS(b, q) = \frac{1}{n}\sum_{i=1}^n y_i^2 - (1 - q)\frac{1}{n}\sum_{i=1}^n h_b(u_i, x_i, y_i).
+\end{equation}
+Applying the triangle inequality:
+\begin{equation}
+    \sup_{b \in \mathcal{W}} |\RS(b, q) - \RhatS(b, q)| \le \left| \mathrm{Var}(Y) - \frac{1}{n}\sum_{i=1}^n y_i^2 \right| + \sup_{b \in \mathcal{W}} |\E[h_b] - \hat{\E}[h_b]|.
+\end{equation}
+The variance term is identical to Lemma~\ref{lem:vanilla_generalization} and is bounded by $\cO\left( C^2\sqrt{\log(1/\delta)/n} \right)$ with probability at least $1 - \delta/2$.
+
+For the second term, we analyze the complexity of the product class $\mathcal{F} \cdot \mathcal{G}$, where:
+\begin{equation}
+    \mathcal{F} = \left\{ (u, x) \mapsto \I{F_b(u, x) > 0} : b \in \mathcal{W} \right\},
+\end{equation}
+and
+\begin{equation}
+    \mathcal{G} = \left\{ (x, y) \mapsto G_b(x, y) : b \in \mathcal{W} \right\}.
+\end{equation}
+For any product class, the empirical Rademacher complexity is bounded by:
+\begin{equation}
+    \hat{\mathcal{R}}(\mathcal{F} \cdot \mathcal{G}; S) \le C_{\mathcal{G}}\hat{\mathcal{R}}(\mathcal{F}; S) + C_{\mathcal{F}}\hat{\mathcal{R}}(\mathcal{G}; S),
+\end{equation}
+where $C_{\mathcal{F}}$ and $C_{\mathcal{G}}$ are uniform bounds on the functions in $\mathcal{F}$ and $\mathcal{G}$. 
+Since $\mathcal{F}$ consists of indicator functions, we have $C_{\mathcal{F}} = 1$. Since $G_b(x, y) = (2y - b^\top x)b^\top x$, under the boundedness assumptions, we have $|G_b| \le (2C + dC^2)dC^2 = \cO(d^2 C^4)$, so we set $C_{\mathcal{G}} = \cO(d^2 C^4)$.
+
+Next, we bound the Rademacher complexity of each class:
+\begin{enumerate}
+    \item \textbf{Complexity of $\mathcal{F}$:} The decision boundary is defined by the quadratic inequality $F_b(u, x) = 2u b^\top x - (b^\top x)^2 > 0$. Using the polynomial embedding trick, we can lift this quadratic function in $d+1$ dimensions to a linear function in a higher-dimensional space of dimension $D = \frac{(d+2)(d+3)}{2} = \cO(d^2)$. Since the VC dimension of linear halfspaces in $D$ dimensions is $D$, we have $d_{\mathrm{VC}}(\mathcal{F}) = \cO(d^2)$. Applying Sauer's lemma and Massart's lemma, the Rademacher complexity is:
+    \begin{equation}
+        \hat{\mathcal{R}}(\mathcal{F}; S) \le \cO\left( \sqrt{\frac{d_{\mathrm{VC}}(\mathcal{F})\log n}{n}} \right) = \cO\left( d\sqrt{\frac{\log n}{n}} \right).
+    \end{equation}
+    \item \textbf{Complexity of $\mathcal{G}$:} The functions in $\mathcal{G}$ are of the form $\phi_y(b^\top x) = (2y - b^\top x)b^\top x$. The derivative of $\phi_y(z) = 2yz - z^2$ with respect to $z = b^\top x$ is bounded by $2C + 2dC^2 = \cO(dC^2)$. Thus, the quadratic mapping is $\cO(dC^2)$-Lipschitz. By Talagrand's contraction and the complexity of the linear class, we have:
+    \begin{equation}
+        \hat{\mathcal{R}}(\mathcal{G}; S) \le \cO(dC^2) \hat{\mathcal{R}}(\mathcal{H}; S) = \cO\left( \frac{d^2 C^4}{\sqrt{n}} \right).
+    \end{equation}
+\end{enumerate}
+Substituting these into the product rule gives:
+\begin{align}
+    \hat{\mathcal{R}}(\mathcal{F} \cdot \mathcal{G}; S) &\le \cO(d^2 C^4) \cdot \cO\left( d\sqrt{\frac{\log n}{n}} \right) + 1 \cdot \cO\left( \frac{d^2 C^4}{\sqrt{n}} \right) \nonumber \\
+    &= \cO\left( d^3 C^4 \sqrt{\frac{\log n}{n}} \right).
+    \label{eq:product_class_complexity}
+\end{align}
+Applying the Rademacher generalization bound, with probability at least $1 - \delta/2$, we get:
+\begin{equation}
+    \sup_{b} |\E[h_b] - \hat{\E}[h_b]| \le \cO\left( d^3 C^4 \sqrt{\frac{\log n}{n}} + C^2\sqrt{\frac{\log(1/\delta)}{n}} \right).
+\end{equation}
+Summing the variance and expectation bounds completes the proof.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Product Class Rule}: Use the empirical Rademacher complexity bound for the product of two function classes $\hat{\mathcal{R}}(\mathcal{F}\cdot\mathcal{G}) \le C_{\mathcal{G}}\hat{\mathcal{R}}(\mathcal{F}) + C_{\mathcal{F}}\hat{\mathcal{R}}(\mathcal{G})$.
+\item \textbf{Polynomial Lift}: Lift the quadratic inequality boundary in $\mathcal{F}$ to a linear halfspace in $\cO(d^2)$ dimensions, showing that its VC-dimension is $d_{\mathrm{VC}} = \cO(d^2)$.
+\item \textbf{Lipschitz Bound on Gain}: Bound the Lipschitz constant of the quadratic gain mapping $G_b(x, y)$ over the bounded hypercube.
+\item \textbf{Asymptotics}: Combine the sub-complexities to show the overall strategic rate of $\mathcal{O}(d^3/\sqrt{n})$.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Theorem 3.10 - Advantage Generalization}
+\subsubsection*{Proof of Theorem~\ref{thm:advantage_generalization}: Advantage Generalization}
+\phantomsection
+\label{app:proof_advantage_generalization}
+\begin{proof}[Advantage Generalization]
+Let $\Delta^* = \RV^*(q) - \RS^*(q)$ and $\hat{\Delta}(S) = \min_b \RhatV(b, q) - \min_b \RhatS(b, q)$. We bound the difference using the standard infimum inequality:
+\begin{equation}
+    \left| \min_{b} f(b) - \min_{b} g(b) \right| \le \sup_{b} |f(b) - g(b)|.
+\end{equation}
+Applying this to both the vanilla and strategic risks yields:
+\begin{align}
+    |\Delta^* - \hat{\Delta}(S)| &\le \left| \min_b \RV(b, q) - \min_b \RhatV(b, q) \right| + \left| \min_b \RS(b, q) - \min_b \RhatS(b, q) \right| \nonumber \\
+    &\le \sup_{b \in \mathcal{W}} |\RV(b, q) - \RhatV(b, q)| + \sup_{b \in \mathcal{W}} |\RS(b, q) - \RhatS(b, q)|.
+\end{align}
+By taking a union bound over the generalization events in Lemma~\ref{lem:vanilla_generalization} and Lemma~\ref{lem:strategic_generalization} (allocating failure probability $\delta/2$ to each), they hold simultaneously with probability at least $1 - \delta$. Summing the bounds and absorbing the lower-order vanilla generalization bound $\cO(d^2 C^4/\sqrt{n})$ into the strategic bound $\cO(d^3 C^4 \sqrt{\log n / n})$ gives the stated result.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Optimization Generalization}: Recall the general optimization bound $|\min f - \min g| \le \sup |f - g|$ to decouple the parameter search.
+\item \textbf{Union Bound}: Apply union bounds to the results of Lemmas 3.8 and 3.9, summing the individual rates.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Theorem 3.11 - Excess Risk Guarantee}
+\subsubsection*{Proof of Theorem~\ref{thm:excess_risk_guarantee}: Excess Risk Guarantee}
+\phantomsection
+\label{app:proof_excess_risk_guarantee}
+\begin{proof}[Excess Risk Guarantee]
+Let $\theta \in \{\mathrm{voluntary}, \mathrm{mandatory}\}$ be the regime selected by the joint selection algorithm, and let $b$ be the slope parameter. The excess risk of the algorithm is:
+\begin{equation}
+    R(\mathcal{A}, S) = R_\theta(b, q) - \min(R_V^*(q), R_S^*(q)).
+\end{equation}
+Let $\epsilon(n, \delta) = \cO\left( d^3 C^4 \sqrt{\frac{\log n}{n}} + C^2 \sqrt{\frac{\log(1/\delta)}{n}} \right)$ be the uniform generalization boundary. By a union bound over the generalization events, the following holds with probability at least $1 - \delta$:
+\begin{equation}
+    \label{eq:gen_bounds_simult}
+    |R_V^*(\bhatV) - \RV^*(\bV)| \le \epsilon, \quad |R_S^*(\bhatS) - \RS^*(\bS)| \le \epsilon, \quad |\Delta^* - \hat{\Delta}(S)| \le \epsilon.
+\end{equation}
+We analyze two cases based on the empirical strategic advantage $\hat{\Delta}(S)$:
+\begin{enumerate}
+    \item \textbf{Case 1: $|\hat{\Delta}(S)| > \epsilon(n, \delta)$.} 
+    Since $|\Delta^* - \hat{\Delta}(S)| \le \epsilon(n, \delta)$, the estimation error is too small to flip the sign of the advantage. Consequently, the algorithm correctly identifies the optimal disclosure regime (e.g., if $\hat{\Delta}(S) > \epsilon$, then $\Delta^* > 0$, and the algorithm chooses voluntary disclosure, which is the oracle choice). The excess risk is then bounded solely by the within-regime generalization error of the selected regime:
+    \begin{equation}
+        R(\mathcal{A}, S) \le \epsilon(n, \delta).
+    \end{equation}
+    \item \textbf{Case 2: $|\hat{\Delta}(S)| \le \epsilon(n, \delta)$.}
+    In this case, the empirical advantage is small, and the algorithm may select the suboptimal disclosure regime. However, because $|\hat{\Delta}(S)| \le \epsilon(n, \delta)$ and $|\Delta^* - \hat{\Delta}(S)| \le \epsilon(n, \delta)$, the true strategic advantage is bounded by:
+    \begin{equation}
+        |\Delta^*| \le |\Delta^* - \hat{\Delta}(S)| + |\hat{\Delta}(S)| \le 2\epsilon(n, \delta).
+    \end{equation}
+    Thus, the penalty for selecting the wrong regime (which is exactly $|\Delta^*|$) is at most $2\epsilon(n, \delta)$. The total excess risk is the sum of the within-regime estimation error and this selection penalty:
+    \begin{equation}
+        R(\mathcal{A}, S) \le \epsilon(n, \delta) + 2\epsilon(n, \delta) = 3\epsilon(n, \delta).
+    \end{equation}
+\end{enumerate}
+In both cases, the excess risk is bounded by $3\epsilon(n, \delta) = \cO(\epsilon(n, \delta))$, which proves the theorem.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Selection Boundary}: Analyze the choice based on empirical advantage size relative to error $\epsilon$.
+\item \textbf{Case 1}: Verify that if empirical advantage is large, the algorithm correctly identifies the best regime.
+\item \textbf{Case 2}: Show that if empirical advantage is small, the oracle advantage is also bounded by $2\epsilon$, limiting the selection penalty.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Lemma 3.12 - Population Gradient Formula}
+\subsubsection*{Proof of Lemma~\ref{lem:population_gradient}: Population Gradient Formula}
+\phantomsection
+\label{app:proof_population_gradient}
+\begin{proof}[Population Gradient Formula]
+The population risk is:
+\begin{equation}
+    L(b) = \E_{(U,X,Y) \sim \mathcal{P}}\left[ Y^2 - \psi(F_b(U, X)) G_b(X, Y) \right].
+\end{equation}
+The term $Y^2$ does not depend on the receiver parameter $b$, so its gradient is zero. We compute the gradient of the product term $\psi(F_b(U, X)) G_b(X, Y)$ using the chain and product rules.
+
+Let $s(b) = b^\top X$. Using this notation:
+\begin{equation}
+    F_b(U, X) = 2Us(b) - s(b)^2, \quad G_b(X, Y) = 2Ys(b) - s(b)^2.
+\end{equation}
+The gradient of $s(b)$ with respect to $b$ is $\nabla_b s(b) = X$. 
+Differentiating $F_b$ and $G_b$ using the chain rule gives:
+\begin{equation}
+    \nabla_b F_b(U, X) = (2U - 2s(b))\nabla_b s(b) = 2(U - b^\top X)X,
+\end{equation}
+\begin{equation}
+    \nabla_b G_b(X, Y) = (2Y - 2s(b))\nabla_b s(b) = 2(Y - b^\top X)X.
+\end{equation}
+Now, we apply the product rule to the expectation:
+\begin{align}
+    \nabla L(b) &= -\E\left[ \nabla_b \left( \psi(F_b(U, X)) G_b(X, Y) \right) \right] \nonumber \\
+    &= -\E\left[ \psi'(F_b(U, X))\nabla_b F_b(U, X) G_b(X, Y) + \psi(F_b(U, X)) \nabla_b G_b(X, Y) \right].
+\end{align}
+Substituting the gradient terms $\nabla_b F_b$ and $\nabla_b G_b$ yields:
+\begin{equation}
+    \nabla L(b) = -2 \E\left[ \psi'(F_b(U, X))(U - b^\top X) G_b(X, Y) X + \psi(F_b(U, X))(Y - b^\top X) X \right],
+\end{equation}
+which matches~\eqref{eq:population_gradient}.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Simplifying derivative}: Differentiate $s(b) = b^\top X$ first, then apply to the quadratic forms of $F_b$ and $G_b$.
+\item \textbf{Chain Rule}: Differentiate the composition $\psi(F_b(b))$ using the chain rule: $\psi'(F_b) \nabla_b F_b$.
+\item \textbf{Product Rule}: Combine derivatives to obtain the final strategic gradient formula.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Theorem 3.14 - Bandit-Feedback Regret}
+\subsubsection*{Proof of Theorem~\ref{thm:bandit_feedback_rate}: Bandit-Feedback Regret}
+\phantomsection
+\label{app:proof_bandit_feedback_rate}
+\begin{proof}[Bandit-Feedback Regret]
+Let $\hat{L}_{\delta}(b) = \E_{v \sim \mathbb{B}^d}[L(b + \delta v)]$ be the smoothed population risk, where $\mathbb{B}^d$ is the solid unit ball in $\R^d$. By Stokes' theorem (or the divergence theorem), the expectation of the one-point gradient estimator $\hat{g}_t = \frac{d}{\delta_t} c_t v_t$ over the sphere surface is:
+\begin{equation}
+    \E_{v_t}\left[ \frac{d}{\delta_t} \ell_t(b_t + \delta_t v_t) v_t \right] = \nabla \hat{L}_{\delta_t}(b_t),
+\end{equation}
+confirming that $\hat{g}_t$ is an unbiased estimator of the gradient of the smoothed risk.
+
+Because the true risk $L(b)$ is $H$-smooth, the smoothed risk uniformly approximates $L(b)$ to second order:
+\begin{equation}
+    \sup_{b \in \mathcal{W}} |\hat{L}_{\delta_t}(b) - L(b)| \le \frac{H}{2} \delta_t^2.
+\end{equation}
+The expected squared norm of the bandit gradient estimator is bounded by:
+\begin{equation}
+    \E[\|\hat{g}_t\|_2^2] = \E\left[ \left\| \frac{d}{\delta_t} c_t v_t \right\|_2^2 \right] \le \frac{d^2 c_{\max}^2}{\delta_t^2},
+\end{equation}
+where $c_{\max} = \cO(d^2 C^4)$ is the maximum loss value.
+
+We apply the standard OGD analysis to the sequence of smoothed functions $\hat{L}_{\delta_t}$, which inherit the local $\lambda$-strong convexity of $L$. Using the learning rate $\eta_t = \frac{1}{\lambda t}$:
+\begin{equation}
+    \sum_{t=1}^T \E[\hat{L}_{\delta_t}(b_t) - \hat{L}_{\delta_t}(b^*)] \le \sum_{t=1}^T \frac{\eta_t}{2}\E[\|\hat{g}_t\|_2^2] \le \frac{d^2 c_{\max}^2}{2\lambda}\sum_{t=1}^T \frac{1}{\delta_t^2 t}.
+\end{equation}
+To express this in terms of the true risk $L(b_t)$, we add and subtract the smoothing approximation error:
+\begin{equation}
+    \sum_{t=1}^T \E[L(\hat{b}_t) - L(b^*)] \le \sum_{t=1}^T \E[\hat{L}_{\delta_t}(b_t) - \hat{L}_{\delta_t}(b^*)] + H\sum_{t=1}^T \delta_t^2.
+\end{equation}
+Substituting the exploration radius $\delta_t = \delta_0 t^{-1/4}$ gives:
+\begin{equation}
+    \sum_{t=1}^T \E[L(\hat{b}_t) - L(b^*)] \le \frac{d^2 c_{\max}^2}{2\lambda \delta_0^2}\sum_{t=1}^T t^{-1/2} + H\delta_0^2 \sum_{t=1}^T t^{-1/2}.
+\end{equation}
+Approximating the sum $\sum_{t=1}^T t^{-1/2} \le 2\sqrt{T}$ gives:
+\begin{equation}
+    \sum_{t=1}^T \E[L(\hat{b}_t) - L(b^*)] \le \left( \frac{d^2 c_{\max}^2}{\lambda \delta_0^2} + 2H\delta_0^2 \right) \sqrt{T}.
+\end{equation}
+By setting the exploration parameter $\delta_0 = \sqrt{\frac{d c_{\max}}{\sqrt{2\lambda H}}} = \cO(\sqrt{d})$, the leading term becomes:
+\begin{equation}
+    \sum_{t=1}^T \E[L(\hat{b}_t) - L(b^*)] = \cO\left( d \sqrt{T} \right).
+\end{equation}
+Dividing by $T$ gives the average strategic regret bound $\cO\left( \frac{d}{\sqrt{T}} \right)$.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Stochastic Unbiasedness}: Recall Stokes' theorem to prove that one-point spherical feedback gives an unbiased estimate of the smoothed risk gradient.
+\item \textbf{Smoothing Error}: Use Taylor expansions to bound the difference between smoothed risk $\hat{L}_\delta$ and true risk $L$ by $\cO(H\delta^2)$.
+\item \textbf{Exploration-Exploitation Balance}: Minimize the sum of OGD regret (which scales as $\cO(d^2/\delta^2\sqrt{T})$) and smoothing error (which scales as $\cO(\delta^2\sqrt{T})$) to determine the optimal parameters.
+\end{guideblock}
+
+\subsection{Proofs for Classification (Section 4)}
+\label{subsec:proofs_classification}
+
+The following proofs establish the corresponding results for the discrete multiclass classification setting.
+
+\begin{sourceblock}{Proof of Lemma 4.2 - Sender Best Response in Classification}
+\subsubsection*{Proof of Lemma~\ref{lem:class_best_response}: Sender Best Response in Classification}
+\phantomsection
+\label{app:proof_class_best_response}
+\begin{proof}[Sender Best Response in Classification]
+Let the committed receiver policy be $H = (h, d)$ with default prediction class $i$ (meaning $\hat{y}_t(\emptyset) = i$) and features predictor $h_i(X)$. Senders possess a discrete preferred class $U \in \{1, \dots, K\}$ and seek to minimize their 0-1 prediction loss $\E[\I{\hat{Y} \ne U}].$ We analyze the sender's best response by cases on the preference type $U$:
+\begin{enumerate}
+    \item \textbf{Case 1: $U = i$.} If the sender chooses to withhold features ($D = 0$), the receiver receives an empty message and outputs the default class $i$. The sender's loss is:
+    \begin{equation}
+        \I{i \ne U} = \I{i \ne i} = 0.
+    \end{equation}
+    Since the 0-1 loss is non-negative, this is the global minimum possible loss. Consequently, withholding features ($D = 0$) is always a utility-maximizing action for Senders with preference $U = i$.
+    \item \textbf{Case 2: $U \ne i$.} If the sender chooses to withhold ($D = 0$), the receiver outputs the default class $i$, causing the sender to suffer loss:
+    \begin{equation}
+        \I{i \ne U} = 1.
+    \end{equation}
+    If the sender instead reveals features ($D = 1$), the features are successfully received with probability $1 - q$, in which case the receiver applies the Bayes predictor $h_i(X)$. With probability $q$, erasure occurs, and the receiver falls back to predicting $i$. The sender's expected loss from revealing is:
+    \begin{equation}
+        \E_{\epsilon}\left[ \I{\hat{Y} \ne U} \right] = (1 - q)\Pr(h_i(X) \ne U \mid X, Y) + q \cdot 1 = 1 - (1 - q)\Pr(h_i(X) = U \mid X, Y).
+    \end{equation}
+    Assuming that the predictor $h_i(X)$ has a non-zero probability of matching the sender's preference $U$ (i.e., $\Pr(h_i(X) = U) > 0$), and since $1 - q > 0$, the expected loss from revealing is strictly less than $1$. Therefore, revealing features ($D = 1$) is strictly optimal for Senders with preference $U \ne i$.
+\end{enumerate}
+This confirms that the sender best response partitions the population into those who withhold features ($U = i$) and those who reveal them ($U \ne i$).
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Case division}: Divide senders into two groups based on whether their preferred label matches default class $i$.
+\item \textbf{Global optimum}: Show that matching senders ($U=i$) achieve loss $0$ by withholding features.
+\item \textbf{Strict preference}: Under $U \ne i$, show that disclosure achieves lower expected loss because the Bayes predictor has non-zero probability of predicting $U$.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Lemma 4.3 - Strategic Risk for Classification}
+\subsubsection*{Proof of Lemma~\ref{lem:class_strategic_risk}: Strategic Risk for Classification}
+\phantomsection
+\label{app:proof_class_strategic_risk}
+\begin{proof}[Strategic Risk for Classification]
+By Lemma~\ref{lem:class_best_response}, the sender's best-response strategy partitions the population into two subpopulations: $U = i$ (who withhold features) and $U \ne i$ (who reveal features). Using the law of total expectation, we decompose the receiver's strategic classification risk $R^i_S(q)$ as:
+\begin{equation}
+    R^i_S(q) = \Pr(U = i) \E\left[ \I{\hat{Y} \ne Y} \;\middle|\; U = i \right] + \Pr(U \ne i) \E\left[ \I{\hat{Y} \ne Y} \;\middle|\; U \ne i \right].
+\end{equation}
+We evaluate the conditional expectation for each subpopulation:
+\begin{itemize}
+    \item \textbf{Subpopulation $U = i$:} Senders in this group always withhold features. The receiver always predicts the default class $i$. The conditional loss is:
+    \begin{equation}
+        \E\left[ \I{\hat{Y} \ne Y} \;\middle|\; U = i \right] = \Pr(Y \ne i \mid U = i).
+    \end{equation}
+    \item \textbf{Subpopulation $U \ne i$:} Senders in this group reveal features. The features are successfully received with probability $1 - q$ (resulting in prediction $h_i(X)$ and conditional error $r^{(-i)}_X$) and are erased with probability $q$ (resulting in prediction $i$ and conditional error $\Pr(Y \ne i \mid U \ne i)$). The conditional expected loss is:
+    \begin{equation}
+        \E\left[ \I{\hat{Y} \ne Y} \;\middle|\; U \ne i \right] = q\Pr(Y \ne i \mid U \ne i) + (1 - q)r^{(-i)}_X.
+    \end{equation}
+\end{itemize}
+Substituting these terms and $\pi_i = \Pr(U = i)$ into the strategic risk formula yields:
+\begin{equation}
+    \label{eq:class_risk_deriv_intermediate}
+    R^i_S(q) = \pi_i \Pr(Y \ne i \mid U = i) + (1 - \pi_i) \left[ q \Pr(Y \ne i \mid U \ne i) + (1 - q)r^{(-i)}_X \right].
+\end{equation}
+To obtain the second formulation, we utilize the law of total probability for $\Pr(Y \ne i)$:
+\begin{equation}
+    \Pr(Y \ne i) = \pi_i \Pr(Y \ne i \mid U = i) + (1 - \pi_i)\Pr(Y \ne i \mid U \ne i).
+\end{equation}
+Subtracting and adding $(1 - \pi_i)(1 - q)\Pr(Y \ne i \mid U \ne i)$ to~\eqref{eq:class_risk_deriv_intermediate} allows us to group terms:
+\begin{align}
+    R^i_S(q) &= \pi_i \Pr(Y \ne i \mid U = i) + (1 - \pi_i)\Pr(Y \ne i \mid U \ne i) - (1 - \pi_i)(1 - q)\Pr(Y \ne i \mid U \ne i) \nonumber \\
+    &\quad + (1 - \pi_i)(1 - q)r^{(-i)}_X \nonumber \\
+    &= \Pr(Y \ne i) + (1 - \pi_i)(1 - q)\left( r^{(-i)}_X - \Pr(Y \ne i \mid U \ne i) \right).
+\end{align}
+This matches the stated formula~\eqref{eq:class_strategic_risk}.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Total Expectation}: Decompose strategic risk using the law of total expectation across matching and non-matching subpopulations.
+\item \textbf{Conditioning on Erasure}: Incorporate the erasure events to express prediction errors.
+\item \textbf{Probability Grouping}: Use the law of total probability to group the terms, expressing the risk as an affine function of $q$.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Theorem 4.4 - Vanilla Optimality}
+\subsubsection*{Proof of Theorem~\ref{thm:vanilla_dominance}: Vanilla Optimality}
+\phantomsection
+\label{app:proof_vanilla_dominance}
+\begin{proof}[Vanilla Optimality]
+Let $c^* \in \argmin_i \Pr(Y \ne i)$ be the vanilla optimal default class. Fix any competitor default class $j \ne c^*$, and define the strategic risk difference function:
+\begin{equation}
+    f_j(q) = R^j_S(q) - R^{c^*}_S(q).
+\end{equation}
+By Lemma~\ref{lem:class_strategic_risk}, both $R^j_S(q)$ and $R^{c^*}_S(q)$ are affine functions of $q$ (since $q$ appears linearly). Because the difference of two affine functions is itself affine, $f_j(q)$ is an affine function of $q$ over the domain $q \in [0, 1]$.
+
+An affine function on a closed interval $[0, 1]$ must attain its minimum value at one of the two endpoints, i.e.:
+\begin{equation}
+    \min_{q \in [0, 1]} f_j(q) = \min\{ f_j(0), \, f_j(1) \}.
+\end{equation}
+By assumption, the default class $c^*$ is optimal at both $q = 0$ and $q = 1$, which implies:
+\begin{equation}
+    f_j(0) = R^j_S(0) - R^{c^*}_S(0) \ge 0,
+\end{equation}
+\begin{equation}
+    f_j(1) = R^j_S(1) - R^{c^*}_S(1) \ge 0,
+\end{equation}
+Since both endpoint values are non-negative, the minimum of the affine function is non-negative:
+\begin{equation}
+    f_j(q) \ge 0 \quad \forall q \in [0, 1].
+\end{equation}
+This implies $R^{c^*}_S(q) \le R^j_S(q)$ for all competitor default classes $j \in \{1, \dots, K\}$ and all $q \in [0, 1]$, confirming that $c^*$ is optimal over the entire interval.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Difference is Affine}: Define the risk difference $f_j(q)$ and observe that the difference of two affine functions is affine.
+\item \textbf{Extreme points}: Recall that affine functions on closed intervals are minimized at their endpoints.
+\item \textbf{Completing}: Show that non-negativity at $q=0$ and $q=1$ bounds the entire function above $0$.
+\item \textbf{References}: Make sure the citation keys and references are all resolved correctly.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Theorem 4.5 - Piecewise-Linear Noise Partition}
+\subsubsection*{Proof of Theorem~\ref{thm:piecewise_linear_noise}: Piecewise-Linear Noise Partition}
+\phantomsection
+\label{app:proof_piecewise_linear_noise}
+\begin{proof}[Piecewise-Linear Noise Partition]
+The optimal strategic risk is defined as the pointwise minimum of the strategic risks over the set of default classes:
+\begin{equation}
+    R^*_S(q) = \min_{i \in \{1, \dots, K\}} R^i_S(q).
+\end{equation}
+By Lemma~\ref{lem:class_strategic_risk}, each $R^i_S(q)$ is an affine function of $q$, representing a line over $[0, 1]$. Therefore, the optimal strategic risk function $R^*_S(q)$ is the pointwise minimum (lower envelope) of a finite collection of $K$ lines.
+
+By standard convex analysis, the pointwise minimum of a finite number of concave (or affine) functions is concave and piecewise-linear. 
+Since there are at most $K$ distinct lines in the collection, the lower envelope can contain at most $K$ distinct linear segments. The intersection points of these segments define at most $K - 1$ transition points in the interval $(0, 1)$. These transition points partition the unit interval $[0, 1]$ into at most $K$ subintervals, on each of which a single default class achieves the minimum risk.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Pointwise Minimum}: Formulate optimal strategic risk as the minimum of $K$ risk lines.
+\item \textbf{Lower Envelope Geometry}: Recall that the lower envelope of affine functions is concave and piecewise-linear.
+\item \textbf{Subinterval Count}: Bound the number of active subintervals by $K$ since there are only $K$ lines.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Lemma 4.7 - Effective Sample Size Concentration}
+\subsubsection*{Proof of Lemma~\ref{lem:effective_sample_size}: Effective Sample Size Concentration}
+\phantomsection
+\label{app:proof_effective_sample_size}
+\begin{proof}[Effective Sample Size Concentration]
+Fix a default class $i \in \{1, \dots, K\}$. The indicator variables $I_j = \I{u_j \ne i}$ are independent and identically distributed Bernoulli random variables with success probability:
+\begin{equation}
+    \E[I_j] = \Pr(U \ne i) \ge \gamma,
+\end{equation}
+where we used the nondegenerate mass Assumption~\ref{ass:nondegenerate_mass}.
+The revealed subpopulation sample size is $n_i = \sum_{j=1}^n I_j$, which is a Binomial random variable with expectation $\E[n_i] \ge \gamma n$.
+
+We analyze the probability of a large negative deviation of the empirical sample proportion $n_i/n$ from its expectation. Applying Hoeffding's inequality yields:
+\begin{equation}
+    \Pr\left( \frac{n_i}{n} - \E\left[ \frac{n_i}{n} \right] \le - \epsilon \right) \le \exp\left( -2n \epsilon^2 \right).
+\end{equation}
+Setting $\epsilon = \gamma/2$ gives:
+\begin{equation}
+    \Pr\left( \frac{n_i}{n} - \Pr(U \ne i) \le - \frac{\gamma}{2} \right) \le \exp\left( - \frac{n \gamma^2}{2} \right).
+\end{equation}
+Since $\Pr(U \ne i) \ge \gamma$, the event $\frac{n_i}{n} \le \frac{\gamma}{2}$ implies $\frac{n_i}{n} - \Pr(U \ne i) \le - \frac{\gamma}{2}$. Thus, we have:
+\begin{equation}
+    \Pr\left( n_i < \frac{\gamma n}{2} \right) \le \exp\left( - \frac{n \gamma^2}{2} \right).
+\end{equation}
+To ensure that this holds for all default classes simultaneously, we take a union bound over the $K$ default classes:
+\begin{equation}
+    \Pr\left( \exists i \in \{1, \dots, K\} : n_i < \frac{\gamma n}{2} \right) \le K \exp\left( - \frac{n \gamma^2}{2} \right).
+\end{equation}
+For a sufficiently large sample size $n \ge \frac{2}{\gamma^2}\log\left(\frac{2K}{\delta}\right)$, the right-hand side is at most $\delta/2$. Consequently, with probability at least $1 - \delta/2$, every default class receives at least $\frac{\gamma n}{2}$ training samples.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Bernoulli Trials}: Express the number of active revealed samples $n_i$ as a sum of Bernoulli indicators.
+\item \textbf{Tail Probability}: Use Hoeffding's inequality to bound the negative deviation.
+\item \textbf{Union Bound}: Apply a union bound over all $K$ default options to show simultaneous concentration.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Lemma 4.8 - Natarajan's Sauer-Shelah Lemma}
+\subsubsection*{Proof of Lemma~\ref{lem:natarajan_lemma}: Natarajan's Sauer-Shelah Lemma}
+\phantomsection
+\label{app:proof_natarajan_lemma}
+\begin{proof}[Natarajan's Sauer-Shelah Lemma]
+Let $\mathcal{H}$ be a hypothesis class of functions from $\mathcal{X}$ to $\mathcal{Y} = \{1, \dots, K\}$ with Natarajan dimension $d_N$. We prove the growth function bound by induction on the sample size $n$ and the Natarajan dimension $d_N$.
+
+For the base cases:
+\begin{itemize}
+    \item If $n = 0$, the sample is empty, and $|\mathcal{H}|_S| = 1$. The bound holds since $\Phi_K(d_N, 0) = 1$.
+    \item If $d_N = 0$, the class can shatter no points, meaning it can only produce a single labeling, so $|\mathcal{H}|_S| = 1$. The bound holds since $\Phi_K(0, n) = 1$.
+\end{itemize}
+
+Assume the bound holds for all samples of size $n - 1$. Let $S = \{x_1, \dots, x_n\}$ be a sample of size $n$, and let $S' = S \setminus \{x_n\}$. We partition the set of realizable labelings $\mathcal{H}|_S$ by their restrictions to $S'$. For each prefix labeling $y \in \mathcal{H}|_{S'}$, let $\mathcal{C}(y) \subseteq \{1, \dots, K\}$ be the set of possible labels for the final point $x_n$ that are consistent with $y$. The total number of labelings is:
+\begin{equation}
+    |\mathcal{H}|_S| = \sum_{y \in \mathcal{H}|_{S'}} |\mathcal{C}(y)| = \sum_{y \in \mathcal{H}|_{S'}} 1 + \sum_{y \in \mathcal{H}|_{S'}} (|\mathcal{C}(y)| - 1).
+\end{equation}
+The first term is exactly the number of labelings on $S'$, which is bounded by $\Phi_K(d_N, n - 1)$ by the inductive hypothesis.
+
+For the second term, we utilize the algebraic identity that for any set $\mathcal{C}$ of size $k \ge 1$:
+\begin{equation}
+    k - 1 \le \sum_{a < b} \I{a \in \mathcal{C} \text{ and } b \in \mathcal{C}}.
+\end{equation}
+Applying this to $\mathcal{C}(y)$ gives:
+\begin{equation}
+    \sum_{y \in \mathcal{H}|_{S'}} (|\mathcal{C}(y)| - 1) \le \sum_{y \in \mathcal{H}|_{S'}} \sum_{a < b} \I{a, b \in \mathcal{C}(y)} = \sum_{a < b} \sum_{y \in \mathcal{H}|_{S'}} \I{a, b \in \mathcal{C}(y)}.
+\end{equation}
+For any fixed pair of classes $(a, b)$, the inner sum counts the number of prefixes $y$ that can be extended by both $a$ and $b$ at $x_n$. Let $\mathcal{H}_{a,b}$ be the subset of prefix labelings with this property. If a subset of points $T \subseteq S'$ is N-shattered by $\mathcal{H}_{a,b}$, then the set $T \cup \{x_n\}$ is N-shattered by $\mathcal{H}|_S$ (using the same shattering patterns on $T$, and using $a$ and $b$ at $x_n$). Therefore, the Natarajan dimension of $\mathcal{H}_{a,b}$ is at most $d_N - 1$.
+
+Applying the inductive hypothesis to $\mathcal{H}_{a,b}$ for each of the $\binom{K}{2}$ pairs yields:
+\begin{equation}
+    \sum_{y \in \mathcal{H}|_{S'}} (|\mathcal{C}(y)| - 1) \le \binom{K}{2} \Phi_K(d_N - 1, n - 1).
+\end{equation}
+Combining the two terms:
+\begin{equation}
+    |\mathcal{H}|_S| \le \Phi_K(d_N, n - 1) + \binom{K}{2}\Phi_K(d_N - 1, n - 1).
+\end{equation}
+Using Pascal's recurrence relation $\binom{n-1}{i} + \binom{n-1}{i-1} = \binom{n}{i}$, we expand this expression:
+\begin{align}
+    |\mathcal{H}|_S| &\le \sum_{i=0}^{d_N} \binom{n-1}{i} \binom{K}{2}^i + \binom{K}{2}\sum_{j=0}^{d_N-1} \binom{n-1}{j}\binom{K}{2}^j \nonumber \\
+    &= \sum_{i=0}^{d_N} \binom{n-1}{i} \binom{K}{2}^i + \sum_{i=1}^{d_N} \binom{n-1}{i-1}\binom{K}{2}^i \nonumber \\
+    &= \binom{n-1}{0}\binom{K}{2}^0 + \sum_{i=1}^{d_N} \left( \binom{n-1}{i} + \binom{n-1}{i-1} \right) \binom{K}{2}^i \nonumber \\
+    &= \sum_{i=0}^{d_N} \binom{n}{i} \binom{K}{2}^i = \Phi_K(d_N, n).
+\end{align}
+This completes the inductive proof.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Inductive Base}: Establish the base cases for $n=0$ and $d_N=0$.
+\item \textbf{Labeling Partition}: Partition prefix labelings on $S'$ and analyze extensions.
+\item \textbf{VC Dimension Reduction}: Show that if extensions $(a,b)$ are shattered on $T \cup \{x_n\}$, then the Natarajan dimension of the sub-class drops by 1.
+\item \textbf{Pascal's Identity}: Use Pascal's combination triangle identity to sum the terms.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Lemma 4.9 - Fixed-Default Uniform Convergence}
+\subsubsection*{Proof of Lemma~\ref{lem:fixed_default_convergence}: Fixed-Default Uniform Convergence}
+\phantomsection
+\label{app:proof_fixed_default_convergence}
+\begin{proof}[Fixed-Default Uniform Convergence]
+Fix a default class $i \in \{1, \dots, K\}$. The difference between the strategic risk $R^i_S(h, q)$ and the empirical strategic risk $\hat{R}^i_S(h, q)$ is:
+\begin{align}
+    R^i_S(h, q) - \hat{R}^i_S(h, q) &= \left( \pi_i \Pr(Y \ne i \mid U = i) - \frac{1}{n}\sum_{j=1}^n \I{u_j = i}\I{i \ne y_j} \right) \nonumber \\
+    &\quad + (1 - \pi_i)q\Pr(Y \ne i \mid U \ne i) - q\frac{1}{n}\sum_{j=1}^n \I{u_j \ne i}\I{i \ne y_j} \nonumber \\
+    &\quad + (1 - \pi_i)(1 - q)R_i(h) - (1 - q)\frac{1}{n}\sum_{j=1}^n \I{u_j \ne i}\I{h(x_j) \ne y_j}.
+\end{align}
+The first two terms do not depend on the classifier $h$ and concentrate to their expectations at a rate of $\cO(1/\sqrt{n})$ by Hoeffding's inequality.
+
+To bound the third term uniformly, we focus on the classification error of the revealed subpopulation:
+\begin{equation}
+    |R_i(h) - \hat{R}_i(h)| = \left| \Pr(h(X) \ne Y \mid U \ne i) - \frac{1}{n_i}\sum_{j : u_j \ne i} \I{h(x_j) \ne y_j} \right|,
+\end{equation}
+where $n_i$ is the number of revealed samples.
+
+By the standard Rademacher generalization bound for binary 0-1 loss classes, with probability at least $1 - \delta/K$, we have:
+\begin{equation}
+    \sup_{h \in \mathcal{H}_i} |R_i(h) - \hat{R}_i(h)| \le 2\hat{\mathcal{R}}_{n_i}(\mathcal{L}_i; S) + 3\sqrt{\frac{\log(2K/\delta)}{2n_i}},
+\end{equation}
+where $\mathcal{L}_i = \{(x, y) \mapsto \I{h(x) \ne y} : h \in \mathcal{H}_i\}$.
+
+To bound the empirical Rademacher complexity $\hat{\mathcal{R}}_{n_i}(\mathcal{L}_i; S)$, we project the loss class onto the $n_i$ revealed points. Since the 0-1 loss function is binary-valued, the empirical loss vectors lie in $\{0, 1\}^{n_i}$. Applying Massart's lemma yields:
+\begin{equation}
+    \hat{\mathcal{R}}_{n_i}(\mathcal{L}_i; S) \le \sqrt{\frac{2\log|\mathcal{L}_i|_{n_i}|}{n_i}}.
+\end{equation}
+The number of distinct loss vectors $|\mathcal{L}_i|_{n_i}|$ is bounded by the number of distinct labelings the hypothesis class $\mathcal{H}_i$ can produce on the $n_i$ points. A multiclass linear predictor with $K$ classes and $d$ features per class has Natarajan dimension $d_N = \cO(K d)$. Using Lemma~\ref{lem:natarajan_lemma} (Natarajan's lemma):
+\begin{equation}
+    |\mathcal{H}_i|_{n_i}| \le \sum_{j=0}^{d_N} \binom{n_i}{j}\binom{K}{2}^j \le \left( \frac{e n_i K^2}{2d_N} \right)^{d_N}.
+\end{equation}
+Taking the logarithm yields $\log |\mathcal{L}_i|_{n_i}| \le d_N \log\left( \frac{e n_i K^2}{2d_N} \right) = \cO(K d \log n_i)$. Substituting this back into Massart's bound gives:
+\begin{equation}
+    \hat{\mathcal{R}}_{n_i}(\mathcal{L}_i; S) \le \cO\left( \sqrt{\frac{K d \log n_i}{n_i}} \right).
+\end{equation}
+By Lemma~\ref{lem:effective_sample_size}, the sample size concentrates such that $n_i \ge \frac{\gamma n}{2}$ with high probability. Substituting this lower bound into the generalization inequality yields:
+\begin{equation}
+    \sup_{h \in \mathcal{H}_i} |R^i_S(h, q) - \hat{R}^i_S(h, q)| \le \cO\left( \sqrt{\frac{K d \log n}{n}} + \sqrt{\frac{\log(K/\delta)}{n}} \right),
+\end{equation}
+completing the proof.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Subpopulation Concentration}: Decompose strategic risk difference into constant terms and parameter-dependent terms.
+\item \textbf{0-1 Loss Complexity}: Apply Rademacher generalization to the binary 0-1 loss class on the subpopulation.
+\item \textbf{Massart and Sauer-Shelah}: Bound empirical Rademacher complexity of the multiclass predictors using Massart's inequality and the Natarajan Sauer-Shelah result.
+\item \textbf{Sample Concentration}: Use Lemma 4.7 to substitute $n_i \ge \gamma n / 2$ with high probability.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Lemma 4.10 - Uniform Convergence Over All Defaults}
+\subsubsection*{Proof of Lemma~\ref{lem:simultaneous_convergence}: Uniform Convergence Over All Defaults}
+\phantomsection
+\label{app:proof_simultaneous_convergence}
+\begin{proof}[Uniform Convergence Over All Defaults]
+Let $E_i$ be the event that the uniform convergence bound in Lemma~\ref{lem:fixed_default_convergence} holds for default class $i$. By Lemma~\ref{lem:fixed_default_convergence}, we have:
+\begin{equation}
+    \Pr(E_i^c) \le \frac{\delta}{K}.
+\end{equation}
+Taking a union bound over the $K$ possible default classes:
+\begin{equation}
+    \Pr\left( \exists i \in \{1, \dots, K\} : E_i^c \right) \le \sum_{i=1}^K \Pr(E_i^c) \le K \cdot \frac{\delta}{K} = \delta.
+\end{equation}
+Therefore, with probability at least $1 - \delta$, the event $\bigcap_{i=1}^K E_i$ holds, meaning the uniform generalization bound holds simultaneously for all default classes.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Union Bound}: Apply the union bound over $K$ default classes to show that fixed convergence holds simultaneously with probability $1-\delta$.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Theorem 4.11 - Excess Risk of the Learned Strategy}
+\subsubsection*{Proof of Theorem~\ref{thm:classification_excess_risk}: Excess Risk of the Learned Strategy}
+\phantomsection
+\label{app:proof_classification_excess_risk}
+\begin{proof}[Excess Risk of the Learned Strategy]
+Let $i^*$ and $h^*$ be the oracle optimal default class and classifier, which minimize the true strategic risk:
+\begin{equation}
+    R^*_S(q) = R^{i^*}_S(h^*, q) = \min_{i} \min_{h \in \mathcal{H}_i} R^i_S(h, q).
+\end{equation}
+The empirical learner selects the pair $(\hat{i}^*, \hat{h})$ that minimizes the empirical strategic risk, meaning:
+\begin{equation}
+    \hat{R}^{\hat{i}^*}_S(\hat{h}, q) \le \hat{R}^i_S(h, q) \quad \forall i, h.
+\end{equation}
+In particular, this holds for the oracle optimal pair:
+\begin{equation}
+    \hat{R}^{\hat{i}^*}_S(\hat{h}, q) \le \hat{R}^{i^*}_S(h^*, q).
+\end{equation}
+
+By Lemma~\ref{lem:simultaneous_convergence}, with probability at least $1 - \delta$, the generalization error is uniformly bounded by:
+\begin{equation}
+    \epsilon_n = \cO\left( \sqrt{\frac{K d \log n}{n}} + \sqrt{\frac{\log(K/\delta)}{n}} \right)
+\end{equation}
+for all defaults and classifiers simultaneously.
+
+We decompose the excess risk of the learned strategy as:
+\begin{align}
+    R^{\hat{i}^*}_S(\hat{h}, q) - R^*_S(q) &= \left( R^{\hat{i}^*}_S(\hat{h}, q) - \hat{R}^{\hat{i}^*}_S(\hat{h}, q) \right) + \left( \hat{R}^{\hat{i}^*}_S(\hat{h}, q) - \hat{R}^{i^*}_S(h^*, q) \right) \nonumber \\
+    &\quad + \left( \hat{R}^{i^*}_S(h^*, q) - R^{i^*}_S(h^*, q) \right).
+\end{align}
+We bound each of the three terms:
+\begin{itemize}
+    \item The first term is bounded by $\epsilon_n$ due to uniform generalization of the selected pair.
+    \item The second term is non-positive ($\le 0$) due to the empirical optimality of the chosen pair.
+    \item The third term is bounded by $\epsilon_n$ due to generalization of the oracle pair.
+\end{itemize}
+Combining these bounds yields:
+\begin{equation}
+    R^{\hat{i}^*}_S(\hat{h}, q) - R^*_S(q) \le \epsilon_n + 0 + \epsilon_n = 2\epsilon_n.
+\end{equation}
+Substituting the expression for $\epsilon_n$ completes the proof.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Generalization Error Splitting}: Split excess risk into estimation errors and empirical optimization terms.
+\item \textbf{Empirical Minimizer Property}: Note that the empirical minimizer performs better on training data than the oracle minimizer, making the middle term non-positive.
+\item \textbf{Uniform Convergence Bound}: Use Lemma 4.10 to bound the generalization errors.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Lemma 4.13 - EXP3 Regret Bound}
+\subsubsection*{Proof of Lemma~\ref{lem:exp3_regret}: EXP3 Regret Bound}
+\phantomsection
+\label{app:proof_exp3_regret}
+\begin{proof}[EXP3 Regret Bound]
+Let $L_{t,i} = \tilde{\ell}_t(i, \Theta_{t,i}) \in [0, B]$ be the true strategic surrogate loss for arm $i$ at round $t$. The EXP3 algorithm maintains weights $w_{t,i}$ and updates them using the importance-weighted loss estimates:
+\begin{equation}
+    \hat{L}_{t,i} = \frac{L_{t,i}}{p_{t, i_t}} \I{i = i_t}.
+\end{equation}
+Taking the expectation conditioned on the selection probabilities $p_{t,i}$:
+\begin{equation}
+    \E_{i_t}[\hat{L}_{t,i}] = p_{t,i} \frac{L_{t,i}}{p_{t,i}} + \sum_{j \ne i} 0 = L_{t,i},
+\end{equation}
+confirming that the estimates are unbiased.
+
+By the standard potential function analysis of the Exponential Weights algorithm using $W_t = \sum_{i=1}^K w_{t,i}$:
+\begin{equation}
+    \log\frac{W_{T+1}}{W_1} \le - \frac{\gamma}{K}\sum_{t=1}^T \sum_{i=1}^K p_{t,i} \hat{L}_{t,i} + \frac{\gamma^2}{2 K^2}\sum_{t=1}^T \sum_{i=1}^K p_{t,i} \hat{L}_{t,i}^2.
+\end{equation}
+We lower bound the partition sum using any fixed comparator arm $i^*$:
+\begin{equation}
+    \log\frac{W_{T+1}}{W_1} \ge \log \frac{w_{T+1, i^*}}{K} = - \frac{\gamma}{K}\sum_{t=1}^T \hat{L}_{t, i^*} - \log K.
+\end{equation}
+Combining the bounds and multiplying by $\frac{K}{\gamma}$:
+\begin{equation}
+    \sum_{t=1}^T \sum_{i=1}^K p_{t,i} \hat{L}_{t,i} - \sum_{t=1}^T \hat{L}_{t, i^*} \le \frac{K \ln K}{\gamma} + \frac{\gamma}{2 K}\sum_{t=1}^T \sum_{i=1}^K p_{t,i} \hat{L}_{t,i}^2.
+\end{equation}
+Taking expectations on both sides, the first term on the left is $\E\left[\sum_t \tilde{\ell}_t(i_t, \Theta_{t, i_t})\right]$ and the second term is $\E\left[\sum_t \tilde{\ell}_t(i^*, \Theta_{t, i^*})\right]$. For the squared term on the right:
+\begin{equation}
+    \E[\hat{L}_{t,i}^2] = \E\left[ \frac{L_{t,i}^2}{p_{t,i}^2} \I{i = i_t} \right] = \E\left[ \frac{L_{t,i}^2}{p_{t,i}} \right] \le B \E\left[ \frac{L_{t,i}}{p_{t,i}} \right].
+\end{equation}
+Summing this over $i$ gives:
+\begin{equation}
+    \sum_{i=1}^K p_{t,i} \E[\hat{L}_{t,i}^2] \le B \sum_{i=1}^K L_{t,i} \le B K \tilde{\ell}_t(i_t, \Theta_{t, i_t}) \le B^2 K.
+\end{equation}
+Substituting this back into the expectation inequality gives:
+\begin{equation}
+    \E\left[ \sum_{t=1}^T \tilde{\ell}_t(i_t, \Theta_{t, i_t}) \right] - \E\left[ \sum_{t=1}^T \tilde{\ell}_t(i^*, \Theta_{t, i^*}) \right] \le B \gamma T + \frac{B K \ln K}{\gamma},
+\end{equation}
+which is the stated bound.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Unbiased Estimates}: Verify that the expected value of importance-weighted loss estimates matches the actual losses.
+\item \textbf{KL Divergence Potential}: Set up the KL potential on the EXP3 weights, bounding the log-partition ratio.
+\item \textbf{Expected Regret Bound}: Take expectations on both sides and bound the variance terms using the Arm loss bounds.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Lemma 4.14 - Importance-Weighted OGD Regret}
+\subsubsection*{Proof of Lemma~\ref{lem:ogd_regret}: Importance-Weighted OGD Regret}
+\phantomsection
+\label{app:proof_ogd_regret}
+\begin{proof}[Importance-Weighted OGD Regret]
+Let $i^*$ be a fixed default class. The predictor $\Theta_{t, i^*}$ is updated using the gradient $\hat{g}_t \I{i_t = i^*}$ which is non-zero only when $i_t = i^*$. The OGD update is $\Theta_{t+1, i^*} = \Pi_{\mathcal{W}}\left( \Theta_{t, i^*} - \eta \hat{g}_{t, i^*} \right)$, where:
+\begin{equation}
+    \hat{g}_{t, i^*} = \frac{\I{i_t = i^*}}{p_{t, i^*}} \nabla \phi(\Theta_{t, i^*}; x_t, y_t).
+\end{equation}
+By the standard OGD analysis on Euclidean projections:
+\begin{equation}
+    \|\Theta_{t+1, i^*} - \Theta^*\|_2^2 \le \|\Theta_{t, i^*} - \Theta^*\|_2^2 - 2\eta \langle \hat{g}_{t, i^*}, \, \Theta_{t, i^*} - \Theta^* \rangle + \eta^2 \|\hat{g}_{t, i^*}\|_2^2.
+\end{equation}
+Rearranging terms:
+\begin{equation}
+    2\eta \langle \hat{g}_{t, i^*}, \, \Theta_{t, i^*} - \Theta^* \rangle \le \|\Theta_{t, i^*} - \Theta^*\|_2^2 - \|\Theta_{t+1, i^*} - \Theta^*\|_2^2 + \eta^2 \|\hat{g}_{t, i^*}\|_2^2.
+\end{equation}
+Taking the expectation conditioned on the history up to round $t$:
+\begin{equation}
+    \E_{i_t}[\hat{g}_{t, i^*}] = \nabla \tilde{\ell}{}_t(i^*, \Theta_{t, i^*}).
+\end{equation}
+Thus, the expected inner product is:
+\begin{equation}
+    \E_{i_t}[\langle \hat{g}_{t, i^*}, \, \Theta_{t, i^*} - \Theta^* \rangle] = \langle \nabla \tilde{\ell}_t(i^*, \Theta_{t, i^*}), \, \Theta_{t, i^*} - \Theta^* \rangle.
+\end{equation}
+Since $\tilde{\ell}_t(i^*, \Theta)$ is convex in $\Theta$ (as the cross-entropy surrogate $\phi$ is convex), we have:
+\begin{equation}
+    \tilde{\ell}_t(i^*, \Theta_{t, i^*}) - \tilde{\ell}_t(i^*, \Theta^*) \le \langle \nabla \tilde{\ell}_t(i^*, \Theta_{t, i^*}), \, \Theta_{t, i^*} - \Theta^* \rangle.
+\end{equation}
+Next, we bound the expected squared norm of the stochastic gradient:
+\begin{equation}
+    \E_{i_t}[\|\hat{g}_{t, i^*}\|_2^2] = \E_{i_t}\left[ \frac{\I{i_t = i^*}}{p_{t, i^*}^2} \|\nabla \phi\|_2^2 \right] = \frac{1}{p_{t, i^*}} \|\nabla \phi\|_2^2 \le \frac{K}{\gamma} G^2,
+\end{equation}
+where we used the Lipschitz bound $\|\nabla \phi\|_2 \le G$ and the EXP3 exploration lower bound $p_{t, i^*} \ge \gamma/K$.
+
+Substituting these back into the expectation inequality and summing over $t = 1, \dots, T$:
+\begin{equation}
+    2\eta \sum_{t=1}^T \E[\tilde{\ell}_t(i^*, \Theta_{t, i^*}) - \tilde{\ell}_t(i^*, \Theta^*)] \le \E[\|\Theta_{1, i^*} - \Theta^*\|_2^2] + \eta^2 \sum_{t=1}^T \frac{K}{\gamma} G^2 \le D^2 + \frac{\eta^2 G^2 K T}{\gamma}.
+\end{equation}
+Dividing by $2\eta$ gives the OGD regret bound.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{OGD Expansion}: Use the projection property to expand the squared distance between iterates and competitor.
+\item \textbf{Convexity application}: Use convexity of the cross-entropy surrogate function to lower-bound the inner product.
+\item \textbf{Gradient Variance bound}: Bound the expected squared norm of stochastic gradient $\hat{g}_t$ by using the exploration lower bound $p_{t} \ge \gamma/K$.
+\end{guideblock}
+
+
+\begin{sourceblock}{Proof of Theorem 4.15 - Classification Strategic Regret Guarantee}
+\subsubsection*{Proof of Theorem~\ref{thm:classification_regret_bound}: Classification Strategic Regret Guarantee}
+\phantomsection
+\label{app:proof_classification_regret_bound}
+\begin{proof}[Classification Regret Bound]
+The total expected strategic surrogate regret decomposes into the EXP3 selection regret and OGD optimization regret:
+\begin{align}
+    \text{Regret} &= \E\left[ \sum_{t=1}^T \tilde{\ell}_t(i_t, \Theta_{t, i_t}) \right] - \sum_{t=1}^T \tilde{\ell}_t(i^*, \Theta^*) \nonumber \\
+    &= \left( \E\left[ \sum_{t=1}^T \tilde{\ell}_t(i_t, \Theta_{t, i_t}) \right] - \E\left[ \sum_{t=1}^T \tilde{\ell}_t(i^*, \Theta_{t, i^*}) \right] \right) \nonumber \\
+    &\quad + \left( \E\left[ \sum_{t=1}^T \tilde{\ell}_t(i^*, \Theta_{t, i^*}) \right] - \sum_{t=1}^T \tilde{\ell}_t(i^*, \Theta^*) \right).
+\end{align}
+Using Lemma~\ref{lem:exp3_regret} and Lemma~\ref{lem:ogd_regret}, the total regret is bounded by:
+\begin{equation}
+    \text{Regret} \le B \gamma T + \frac{B K \ln K}{\gamma} + \frac{D^2}{2\eta} + \frac{\eta G^2 K T}{2 \gamma}.
+\end{equation}
+Substituting the learning rate $\eta = \frac{D}{G}\sqrt{\frac{\gamma}{K T}}$:
+\begin{equation}
+    \text{Regret} \le B \gamma T + \frac{B K \ln K}{\gamma} + D G \sqrt{\frac{K T}{\gamma}}.
+\end{equation}
+By setting the exploration rate $\gamma = \min\left\{ 1, \, \left( \frac{K \ln K}{T} \right)^{1/3} \right\}$, the regret terms balance:
+\begin{equation}
+    B \gamma T = B T^{2/3}(K \ln K)^{1/3},
+\end{equation}
+\begin{equation}
+    \frac{B K \ln K}{\gamma} = B T^{2/3}(K \ln K)^{1/3},
+\end{equation}
+and the OGD term becomes $D G T^{2/3} K^{1/3} (\ln K)^{-1/6}$. Summing these terms yields:
+\begin{equation}
+    \text{Regret} \le \cO\left( B T^{2/3} (K \ln K)^{1/3} + D G T^{2/3} K^{1/3} \right),
+\end{equation}
+which is the sublinear regret rate of $\tilde{\cO}(T^{2/3})$.
+\end{proof}
+\end{sourceblock}
+
+\begin{guideblock}
+\item \textbf{Regret Summation}: Sum the discrete selection regret of EXP3 (Lemma 4.13) and continuous optimization regret of OGD (Lemma 4.14).
+\item \textbf{Optimal Choices}: Substitute the learning rate $\eta$ and explore rate $\gamma$ to balance regret terms and solve for the optimal sublinear rate $\tilde{\mathcal{O}}(T^{2/3})$.
+\end{guideblock}

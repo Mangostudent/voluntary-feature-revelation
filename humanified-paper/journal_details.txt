@@ -1,0 +1,92 @@
+================================================================================
+ACM Transactions on Intelligent Systems and Technology (TIST) - Submission Info
+================================================================================
+
+1. JOURNAL OVERVIEW & REPUTATION
+---------------------------------
+* Journal Name: ACM Transactions on Intelligent Systems and Technology (TIST)
+* Scope: Interdisciplinary venue focusing on intelligent systems, machine learning, 
+         data mining, human-computer interaction, intelligent control, and AI.
+* Reputation: Highly prestigious, Q1-ranked journal in Artificial Intelligence and 
+              Intelligent Systems.
+* Metrics: Recent Impact Factor (IF): ~6.6 - 7.6
+           CiteScore: ~11.2 - 11.7
+           SJR (SCImago Journal Rank): ~1.36
+* Significance: Perfect fit for "Voluntary Feature Revelation" due to its focus 
+                 on strategic aspects of machine learning, game-theoretic agent 
+                 behavior, and practical algorithms with solid guarantees.
+
+2. SUBMISSION REQUIREMENTS & FORMATTING
+---------------------------------------
+* Template: Official ACM Primary Article Template (acmart.cls).
+* Format Option: \documentclass[acmsmall]{acmart} (Single-column layout).
+* Bibliography Style: ACM-Reference-Format (linked to a references.bib file).
+* Page Limits: No strict page limit for journal submissions. TIST encourages 
+               thorough proofs, detailed appendices, and exhaustive simulation 
+               evaluations. Average length is 25-40 pages.
+* Abstract Length: 150 to 250 words, written in a single paragraph.
+* Special Sections: Mandatory ACM Computing Classification System (CCS) concepts 
+                     for camera-ready. Author acknowledgments must use the "acks" 
+                     environment.
+
+3. TIMELINES & TURNAROUND
+--------------------------
+* Review Process: Traditional peer-review by 3 independent expert reviewers.
+* Review Cycle: Rigorous peer-review standards. Average time to first decision is 
+                typically 3 to 6 months (90-180 days), but final publication 
+                decisions can take 6 to 9 months depending on revision cycles.
+
+4. ACM GENERATIVE AI POLICY & AUTHOR GUIDELINES
+-----------------------------------------------
+* AI Cannot Be an Author: Generative AI tools (LLMs) cannot be listed as co-authors. 
+  Authorship is strictly reserved for human contributors.
+* Full Disclosure: The use of generative AI tools to assist in writing drafts 
+  (such as proof structures, text polishing, or code outlines) must be fully 
+  disclosed in the manuscript. Typically, this disclosure is placed in the 
+  Acknowledgments section (the "acks" environment in acmart).
+* Author Responsibility: Human authors remain 100% accountable for the accuracy, 
+  originality, and integrity of all content.
+* Reviewer Policy: Reviewers are strictly prohibited from uploading confidential 
+  submissions into third-party AI tools (such as LLMs) that do not guarantee data 
+  confidentiality.
+
+5. MANUSCRIPT COMPLETENESS CHECKLIST
+------------------------------------
+Use this checklist to track the paper's progress:
+
+[x] LaTeX Template Configured (ACM acmart template in place for TIST)
+[x] Local Build Setup Confirmed (compiles cleanly with all temp files hidden)
+[x] Abstract (sections/0_abstract.tex)
+    [x] Background and context
+    [x] Specific problem statement
+    [x] Proposed Stackelberg model and methodology
+    [x] Main theoretical/empirical findings
+[x] Introduction (sections/1_introduction.tex)
+    [x] Problem formulation motivation (strategic agents, noisy channels)
+    [x] Research gaps (with respect to previous strategic learning literature)
+    [x] Bullets of major contributions
+    [x] Structure overview of the rest of the paper
+[x] Related Work (integrated in introduction/1_introduction.tex)
+    [x] Strategic classification & regression literature
+    [x] Game-theoretic information disclosure models
+[x] Proposed Methodology (sections/2_formulation.tex, 3_regression.tex, 4_classification.tex)
+    [x] Stackelberg game mathematical formulation
+    [x] Sender best response derivation
+    [x] Necessary and sufficient conditions for positive strategic advantage
+    [x] Mathematical proofs (detailed in sections/7_postponed_proofs.tex)
+[x] Experimental Setup (sections/5_experiments.tex)
+    [x] Simulation environments and synthetic dataset details
+    [x] Baseline models definition
+    [x] Parameters and hyperparameters listings (for reproducibility)
+[x] Results and Discussion (sections/5_experiments.tex)
+    [x] Quantitative comparison plots and sweeps
+    [x] Ablation studies and parameter sensitivity (impact of noise q, noise alpha)
+[x] Conclusion & Future Directions (sections/6_conclusion.tex)
+    [x] Brief summary of outcomes
+    [x] Concrete future work directions and limitations section
+[x] Declarations & Acknowledgments (voluntary_feature_revelation.tex)
+    [x] Funding and conflicts of interest details
+    [x] Generative AI Disclosure
+[x] Bibliography (references.bib)
+    [x] Clean BibTeX formatting matching the ACM Reference Format
+================================================================================
